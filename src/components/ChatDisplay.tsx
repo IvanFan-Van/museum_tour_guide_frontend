@@ -1,4 +1,5 @@
 import type { Ref } from "react";
+import Markdown from "react-markdown";
 
 const ChatDisplay = ({
     displayedText,
@@ -29,7 +30,7 @@ const ChatDisplay = ({
                 WebkitMaskImage:
                     "linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)",
             }}
-        >{displayedText}</div>
+        ><Markdown>{displayedText}</Markdown></div>
     );
 };
 

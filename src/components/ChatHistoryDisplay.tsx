@@ -26,8 +26,7 @@ export default function ChatHistoryDisplay({
                     : "max-w-[75%] my-[6px] p-[12px] bg-[#3D355D] rounded-xl self-end"}
                     key={i}
                 >
-                    {msg.image.trim() && <img src={msg.image} />}
-                    <text className="text-[12] text-[#fff]">{msg.text}</text>
+                    <div className="text-[12] text-[#fff]"><Markdown>{msg.text + "\n" + msg.image}</Markdown></div>
                 </div>
             ))}
         </div>

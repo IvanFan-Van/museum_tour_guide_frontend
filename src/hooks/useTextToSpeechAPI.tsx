@@ -10,7 +10,7 @@ const base64ToUint8Array = (base64: string) => {
     return bytes;
 };
 
-const useTextToSpeechAPI = (query: string, addMessageHistory: (sender: string, text: string, image: string) => void) => {
+const useTextToSpeechAPI = (query: string, queryImage: string, addMessageHistory: (sender: string, text: string, image: string) => void) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [audioQueue, setAudioQueue] = useState<
         Array<{ url: string; text: string }>
@@ -21,7 +21,7 @@ const useTextToSpeechAPI = (query: string, addMessageHistory: (sender: string, t
 
         if (!query.trim() || isLoading) return;
         
-        addMessageHistory("user", query, "")
+        addMessageHistory("user", query, queryImage)
 
         setIsLoading(true); // 开始加载状态
 
