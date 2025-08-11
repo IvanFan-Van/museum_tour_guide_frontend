@@ -1,94 +1,119 @@
-import { KokoroTTS, TextSplitterStream } from "kokoro-js";
+import { TextSplitterStream } from "kokoro-js";
 import { Client } from "@langchain/langgraph-sdk";
-import { useState } from "react";
-import type { list } from "postcss";
+import { useState, useEffect, useRef } from "react";
 
 const client = new Client({
-  apiUrl: "http://10.147.19.97:8000",
+    apiUrl: "http://10.147.19.97:8000",
 });
 const splitter = new TextSplitterStream();
-const model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
-const tts = await KokoroTTS.from_pretrained(model_id, {
-  dtype: "fp32", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
-  // device: "webgpu", // Options: "wasm", "webgpu" (web) or "cpu" (node).
-});
-const stream = tts.stream(splitter);
+// KokoroTTS 初始化代码已移至 web worker
 
 type Chunk = {
-  event: string;
-  data: {
-    generation: string;
-    messages: object[];
-  };
-}
+    event: string;
+    data: {
+        generation: string;
+        messages: object[];
+    };
+};
 
-export default function useTTSApi(query: string, addMessageHistory: (sender: string, text: string) => void) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [audioQueue, setAudioQueue] = useState<
-    Array<{ url: string; text: string }>
-  >([]);
-  const [isLoading, setIsLoading] = useState(false);
+export default function useTTSApi(
+    query: string,
+    addMessageHistory: (sender: string, text: string) => void
+) {
+    const [displayedText, setDisplayedText] = useState("");
+    const [audioQueue, setAudioQueue] = useState<
+        Array<{ url: string; text: string }>
+    >([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const workerRef = useRef<Worker | null>(null);
 
+    useEffect(() => {
+        // 创建一个新的 worker 实例
+        const worker = new Worker(
+            new URL("../workers/tts.worker.ts", import.meta.url),
+            {
+                type: "module",
+            }
+        );
+        workerRef.current = worker;
 
-  const submitQuery = async (e: React.FormEvent) => {
-    e.preventDefault();
+        // 监听来自 worker 的消息
+        worker.onmessage = (
+            event: MessageEvent<{
+                type: string;
+                url?: string;
+                text?: string;
+                error?: string;
+            }>
+        ) => {
+            const { type, url, text, error } = event.data;
+            if (type === "RESULT" && url && text) {
+                // 将收到的音频 URL 添加到播放队列
+                setAudioQueue((prev) => [...prev, { url, text }]);
+            } else if (type === "INITIALIZED") {
+                console.log("TTS Worker is ready.");
+            } else if (type === "ERROR") {
+                console.error("TTS Worker Error:", error);
+            }
+        };
 
-    if (!query.trim()) return;
+        // 组件卸载时终止 worker
+        return () => {
+            worker.terminate();
+            workerRef.current = null;
+        };
+    }, []);
 
-    setIsLoading(true);
+    const submitQuery = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    // Add user msg to histroy
-    addMessageHistory("user", query);
+        if (!query.trim() || !workerRef.current) return;
 
-    // Send request to backend
-    const assistants = await client.assistants.search({
-      metadata: null,
-      offset: 0,
-      limit: 10,
-    });
+        setIsLoading(true);
+        addMessageHistory("user", query);
 
-    const agent = assistants[0];
+        const assistants = await client.assistants.search({
+            metadata: null,
+            offset: 0,
+            limit: 10,
+        });
+        const agent = assistants[0];
+        const thread = await client.threads.create();
+        const messages = [{ role: "human", content: query }];
 
-    const thread = await client.threads.create();
+        const streamResponse = client.runs.stream(
+            thread["thread_id"],
+            agent["assistant_id"],
+            {
+                input: { messages },
+            }
+        );
 
-    const messages = [{ role: "human", content: query }];
-    const streamResponse = client.runs.stream(
-      thread["thread_id"],
-      agent["assistant_id"],
-      {
-        input: { messages },
-      }
-    );
+        for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
+            if (chunk["event"] == "values" && chunk["data"]["generation"]) {
+                const newText = chunk["data"]["generation"];
+                setDisplayedText((prev) => prev + newText);
 
-    (async () => {
-      for await (const { text, phonemes, audio } of stream) {
-        console.log({ text, phonemes });
-        const url = URL.createObjectURL(audio.toBlob());
-        setAudioQueue((prev) => [...prev, { url: url, text: text }]);
-      }
-    })();
-
-    for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
-      if (chunk["event"] == "values" && chunk["data"]["generation"]) {
-        setDisplayedText((prev) => { return prev + chunk["data"]["generation"]});
-        const words = chunk["data"]["generation"].match(/\s*\S+/g) + "";
-        for (const token of words) {
-          splitter.push(token);
-          await new Promise((resolve) => setTimeout(resolve, 10));
+                // 将文本块发送到 worker 进行处理
+                const textToSpeak = newText.match(/\s*\S+/g) || [];
+                if (textToSpeak.length > 0) {
+                    workerRef.current?.postMessage({
+                        text: textToSpeak.join(""),
+                    });
+                }
+            }
         }
-      }
-    }
 
-    splitter.flush();
-    setIsLoading(false);
-  };
+        splitter.flush();
+        setIsLoading(false);
+    };
 
-  return {
-    typewriterText: displayedText,
-    setTypewriterText: setDisplayedText,
-    isLoading,
-    audioQueue,
-    setAudioQueue,
-    submitQuery,
-  };
+    return {
+        typewriterText: displayedText,
+        setTypewriterText: setDisplayedText,
+        isLoading,
+        audioQueue,
+        setAudioQueue,
+        submitQuery,
+    };
 }

@@ -29,4 +29,7 @@ const streamResponse = client.runs.stream(
 
 for await (const chunk of streamResponse) {
     console.log(chunk);
+    // if (chunk["event"] == "values" && chunk["data"]["generation"]) {
+    //     console.log(chunk["data"]["generation"]);
+    // }
 }
