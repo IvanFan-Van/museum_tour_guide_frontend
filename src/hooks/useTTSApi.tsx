@@ -1,6 +1,7 @@
 import { KokoroTTS, TextSplitterStream } from "kokoro-js";
 import { Client } from "@langchain/langgraph-sdk";
 import { useState } from "react";
+import type { list } from "postcss";
 
 const client = new Client({
   apiUrl: "http://10.147.19.97:8000",
@@ -12,6 +13,14 @@ const tts = await KokoroTTS.from_pretrained(model_id, {
   // device: "webgpu", // Options: "wasm", "webgpu" (web) or "cpu" (node).
 });
 const stream = tts.stream(splitter);
+
+type Chunk = {
+  event: string;
+  data: {
+    generation: string;
+    messages: object[];
+  };
+}
 
 export default function useTTSApi(query: string, addMessageHistory: (sender: string, text: string) => void) {
   const [displayedText, setDisplayedText] = useState("");
@@ -53,16 +62,20 @@ export default function useTTSApi(query: string, addMessageHistory: (sender: str
       let i = 0;
       for await (const { text, phonemes, audio } of stream) {
         console.log({ text, phonemes });
-        audio.save(`audio-${i++}.wav`);
+        const url = URL.createObjectURL(audio.toBlob());
+        setAudioQueue((prev) => [...prev, { url, text: text }]);
       }
     })();
 
-    for await (const chunk of streamResponse) {
-      setDisplayedText((prev) => { return prev + chunk });
-      const words = chunk.event.match(/\s*\S+/g) + "";
-      for (const token of words) {
-        splitter.push(token);
-        await new Promise((resolve) => setTimeout(resolve, 10));
+    for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
+      
+      if (chunk["event"] == "values" && chunk["data"]["generation"]) {
+        setDisplayedText((prev) => { return prev + chunk["data"]["generation"]});
+        const words = chunk.event.match(/\s*\S+/g) + "";
+        for (const token of words) {
+          splitter.push(token);
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
       }
     }
 
