@@ -35,6 +35,8 @@ export default function useTTSApi(query: string, addMessageHistory: (sender: str
 
     if (!query.trim()) return;
 
+    setIsLoading(true);
+
     // Add user msg to histroy
     addMessageHistory("user", query);
 
@@ -67,10 +69,9 @@ export default function useTTSApi(query: string, addMessageHistory: (sender: str
     })();
 
     for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
-      
       if (chunk["event"] == "values" && chunk["data"]["generation"]) {
         setDisplayedText((prev) => { return prev + chunk["data"]["generation"]});
-        const words = chunk.event.match(/\s*\S+/g) + "";
+        const words = chunk["data"]["generation"].match(/\s*\S+/g) + "";
         for (const token of words) {
           splitter.push(token);
           await new Promise((resolve) => setTimeout(resolve, 10));
@@ -79,6 +80,7 @@ export default function useTTSApi(query: string, addMessageHistory: (sender: str
     }
 
     splitter.flush();
+    setIsLoading(false);
   };
 
   return {
