@@ -13,12 +13,10 @@ import ScannerPage from "./components/ScannerPage";
 import useTTSApi from "./hooks/useTTSApi";
 
 interface Message {
-    sender: string,
-    text: string,
-    image: string
+    sender: string;
+    text: string;
+    image: string;
 }
-
-
 
 export default function Alpha() {
     // State for the text shown in the main display
@@ -30,18 +28,17 @@ export default function Alpha() {
     const [qrValue, setQrValue] = useState("");
 
     // State for message histroy
-    const [msgHistory, setMsgHistory] = useState<Message[]>([])
+    const [msgHistory, setMsgHistory] = useState<Message[]>([]);
     // State to determine whether to display chat history in place of current output
     const [displayHistory, setDisplayHistory] = useState(false);
     // --- LOGIC HOOKS ---
     const {
-        isRecording,    // Is the client recording
-        transcript,     // STT output
+        isRecording, // Is the client recording
+        transcript, // STT output
         setTranscript,
         startRecording,
         stopRecording,
     } = useSpeechRecognition();
-
 
     const {
         typewriterText,
@@ -49,12 +46,13 @@ export default function Alpha() {
         isLoading,
         audioQueue,
         setAudioQueue,
-        submitQuery
+        submitQuery,
     } = useTTSApi(transcript, (sender: string, text: string) => {
-        setMsgHistory(msg => [...msg,
-        { sender: sender, text: text, image: ""}
+        setMsgHistory((msg) => [
+            ...msg,
+            { sender: sender, text: text, image: "" },
         ]);
-    })
+    });
 
     /*
     const {
@@ -115,32 +113,42 @@ export default function Alpha() {
     // Auto-scroll textarea to the bottom
     useEffect(() => {
         if (inputTextAreaRef.current) {
-            inputTextAreaRef.current.scrollTop = inputTextAreaRef.current.scrollHeight;
+            inputTextAreaRef.current.scrollTop =
+                inputTextAreaRef.current.scrollHeight;
         }
     }, [textInput]);
 
     useEffect(() => {
         if (chatTextAreaRef.current) {
-            chatTextAreaRef.current.scrollTop = chatTextAreaRef.current.scrollHeight;
+            chatTextAreaRef.current.scrollTop =
+                chatTextAreaRef.current.scrollHeight;
         }
     }, [textOutput]);
 
     // Auto return to chat screen when scanner scans anything
     useEffect(() => {
         setScannerMode(false);
-        console.log(qrValue)
-    }, [qrValue])
+        console.log(qrValue);
+    }, [qrValue]);
 
     // QR Code Scanner Screen
     if (scannerMode) {
-        return (<ScannerPage setQrValue={setQrValue} setScannerMode={setScannerMode} />)
+        return (
+            <ScannerPage
+                setQrValue={setQrValue}
+                setScannerMode={setScannerMode}
+            />
+        );
     }
 
     // Chatbot Screen
     return (
         <div className="flex flex-col h-screen bg-linear-to-t from-[#252733] to-[#493E51] font-sans">
             <header className="px-4 py-2 mx-[2vw] flex flex-row items-center justify-between relative font-sans text-4xl">
-                <ChatHistoryButton setIsOpen={setDisplayHistory} isOpen={displayHistory} />
+                <ChatHistoryButton
+                    setIsOpen={setDisplayHistory}
+                    isOpen={displayHistory}
+                />
                 <img src={Logo} className="max-w-[60vw]  px-4" />
                 <SettingsButton />
             </header>
@@ -163,9 +171,9 @@ export default function Alpha() {
                     onRecordClick={handleVoiceInput}
                     onSendClick={(e: React.FormEvent) => {
                         if (textOutput.trim().length > 0) {
-
-                            setMsgHistory(msg => [...msg,
-                            { sender: "bot", text: textOutput, image: "" }
+                            setMsgHistory((msg) => [
+                                ...msg,
+                                { sender: "bot", text: textOutput, image: "" },
                             ]);
                             setTextOutput("");
                             setTypewriterText("");
@@ -175,11 +183,10 @@ export default function Alpha() {
                     onTakePhotoClick={setImageInput}
                     inputTextAreaRef={inputTextAreaRef}
                     textInput={textInput}
-                    setTextInput={
-                        (value) => {
-                            setTranscript(value);
-                            setTextInput(value);
-                        }}
+                    setTextInput={(value) => {
+                        setTranscript(value);
+                        setTextInput(value);
+                    }}
                     setScannerMode={setScannerMode}
                     imageInput={imageInput}
                 />
@@ -189,4 +196,3 @@ export default function Alpha() {
         </div>
     );
 }
-

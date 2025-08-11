@@ -50,6 +50,7 @@ export default function useTTSApi(
             if (type === "RESULT" && url && text) {
                 // 将收到的音频 URL 添加到播放队列
                 setAudioQueue((prev) => [...prev, { url, text }]);
+                setIsLoading(false);
             } else if (type === "INITIALIZED") {
                 console.log("TTS Worker is ready.");
             } else if (type === "ERROR") {
@@ -95,7 +96,10 @@ export default function useTTSApi(
                 setDisplayedText((prev) => prev + newText);
 
                 // 将文本块发送到 worker 进行处理
-                const textToSpeak = newText.match(/\s*\S+/g) || [];
+                const textToSpeak =
+                    newText.match(
+                        /[a-zA-Z0-9\u4e00-\u9fa5\s.,?!'":;()\[\]{}-]+/g
+                    ) || [];
                 if (textToSpeak.length > 0) {
                     workerRef.current?.postMessage({
                         text: textToSpeak.join(""),
@@ -105,7 +109,6 @@ export default function useTTSApi(
         }
 
         splitter.flush();
-        setIsLoading(false);
     };
 
     return {
