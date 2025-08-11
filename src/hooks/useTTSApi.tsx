@@ -11,14 +11,14 @@ const tts = await KokoroTTS.from_pretrained(model_id, {
   dtype: "fp32", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
   // device: "webgpu", // Options: "wasm", "webgpu" (web) or "cpu" (node).
 });
-
+const stream = tts.stream(splitter);
 
 export default function useTTSApi(query: string, addMessageHistory: (sender: string, text: string) => void) {
   const [displayedText, setDisplayedText] = useState("");
   const [audioQueue, setAudioQueue] = useState<
     Array<{ url: string; text: string }>
   >([]);
-
+  const [isLoading, setIsLoading] = useState(false);
 
 
   const submitQuery = async (e: React.FormEvent) => {
@@ -49,47 +49,32 @@ export default function useTTSApi(query: string, addMessageHistory: (sender: str
       }
     );
 
+    (async () => {
+      let i = 0;
+      for await (const { text, phonemes, audio } of stream) {
+        console.log({ text, phonemes });
+        audio.save(`audio-${i++}.wav`);
+      }
+    })();
+
     for await (const chunk of streamResponse) {
       setDisplayedText((prev) => { return prev + chunk });
-      const words = chunk.event.match(/\s*\S+/g);
+      const words = chunk.event.match(/\s*\S+/g) + "";
       for (const token of words) {
         splitter.push(token);
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
     }
 
-  const stream = tts.stream(splitter);
-  (async () => {
-    let i = 0;
-    for await (const { text, phonemes, audio } of stream) {
-      console.log({ text, phonemes });
-      audio.save(`audio-${i++}.wav`);
-    }
-  })();
-
-  const temp = text.match(/\s*\S+/g);
-  const tokens = temp ? temp : "";
-  for (const token of tokens) {
-    splitter.push(token);
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-
-  splitter.flush();
+    splitter.flush();
   };
 
-
-
-
-
-  // First, set up the stream
-
-
-
-  // Finally, close the stream to signal that no more text will be added.
-
-
-  // Alternatively, if you'd like to keep the stream open, but flush any remaining text, you can use the `flush` method.
-  // 
-
-  return { typewriterText: displayedText, setTypewriterText: setDisplayedText };
+  return {
+    typewriterText: displayedText,
+    setTypewriterText: setDisplayedText,
+    isLoading,
+    audioQueue,
+    setAudioQueue,
+    submitQuery,
+  };
 }

@@ -10,6 +10,7 @@ import ChatHistoryDisplay from "./components/ChatHistoryDisplay";
 import SettingsButton from "./components/SettingsButton";
 import Logo from "./assets/UMAG-logo.svg";
 import ScannerPage from "./components/ScannerPage";
+import useTTSApi from "./hooks/useTTSApi";
 
 interface Message {
     sender: string,
@@ -21,18 +22,7 @@ interface Message {
 
 export default function Alpha() {
     // State for the text shown in the main display
-    const [textOutput, setTextOutput] = useState(`Oh, the Kangxi porcelain from Jingdezhen? That stuff was a real game-changer for European ceramics. Here's the scoop: during the Kangxi period (1662–1722), Chinese artisans perfected techniques like the “powder blue” glaze (where they blew cobalt blue through bamboo tubes!) and ornate multi-step painting styles, like the "Long Eliza" motif featuring slender elegant figures. These porcelain wares weren’t just stunning—they were also ridiculously intricate to produce, which made them luxury items in European markets.  
-
-European manufacturers, especially those in places like Worcester in England, were obsessed with mimicking Kangxi designs. They couldn’t initially replicate the Chinese hard-paste porcelain formula, so they created soft-paste porcelain, taking inspiration from the motifs and patterns of import wares. The "Long Eliza" figures? You’d find them peppered all over British plates and bowls during this time!
-
-Here’s one of the iconic pieces featuring the powder blue glaze and detailed designs that wowed European consumers:  
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-27/26ec8c02-599c-4b79-9876-e092d6287e02/c98871958c5499de21bb459198c2901658b12abdafc06a3b4fdbf2035d6e4697.jpg)  
-And another with exquisite detail:  
-![](https://cdn-mineru.openxlab.org.cn/result/2025-07-27/26ec8c02-599c-4b79-9876-e092d6287e02/0cc02fb6b7586efcedbed5f97e772400067122497506e0b8f7c5326eef0721f0.jpg)  
-
-What’s super interesting is how porcelain fever eventually pushed Europeans to crack the secret of true hard-paste porcelain. By 1708, Johann Friedrich Böttger in Meissen, Germany, finally figured it out, marking the start of European competition. Before that, though, Kangxi-period porcelain was the benchmark designers in Europe aspired to copy.
-
-Have you seen any of these “Long Eliza” motifs on European ceramics before? They're such a fun little crossover between cultures!`);
+    const [textOutput, setTextOutput] = useState("Hi! How can I help you?");
     const [textInput, setTextInput] = useState("");
     const [imageInput, setImageInput] = useState("");
     // State to determine if qr code scanner mode is active
@@ -52,6 +42,21 @@ Have you seen any of these “Long Eliza” motifs on European ceramics before? 
         stopRecording,
     } = useSpeechRecognition();
 
+
+    const {
+        typewriterText,
+        setTypewriterText,
+        isLoading,
+        audioQueue,
+        setAudioQueue,
+        submitQuery
+    } = useTTSApi(transcript, (sender: string, text: string) => {
+        setMsgHistory(msg => [...msg,
+        { sender: sender, text: text, image: ""}
+        ]);
+    })
+
+    /*
     const {
         isLoading,
         audioQueue,
@@ -64,6 +69,7 @@ Have you seen any of these “Long Eliza” motifs on European ceramics before? 
             ]);
         }
     );
+    */
 
     const audioRef = useRef<HTMLAudioElement>(null);
     const { isPlaying, currentItem } = useAudioPlayer({
@@ -73,10 +79,12 @@ Have you seen any of these “Long Eliza” motifs on European ceramics before? 
     });
 
     const audioDuration = audioRef.current?.duration ?? 0;
+    /*
     const { typewriterText, setTypewriterText } = useTypewriter(
         currentItem?.text ?? null,
         audioDuration > 1 ? audioDuration - 0.5 : 3
     );
+    */
 
     // --- UI REFS & EFFECTS ---
     const chatTextAreaRef = useRef<HTMLDivElement>(null);
