@@ -59,11 +59,10 @@ export default function useTTSApi(query: string, addMessageHistory: (sender: str
     );
 
     (async () => {
-      let i = 0;
       for await (const { text, phonemes, audio } of stream) {
         console.log({ text, phonemes });
         const url = URL.createObjectURL(audio.toBlob());
-        setAudioQueue((prev) => [...prev, { url, text: text }]);
+        setAudioQueue((prev) => [...prev, { url: url, text: text }]);
       }
     })();
 
