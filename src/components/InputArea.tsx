@@ -43,9 +43,9 @@ export default function InputArea({
                 isLoading={isLoading}
                 inputTextAreaRef={inputTextAreaRef}
             />
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
                 <TakePhotoButton onClick={onTakePhotoClick} />
-                <div className="flex items-center justify-center px-4">
+                <div className="flex items-center justify-center px-4 grow-1">
                     {isRecording || (!hasText && !isLoading) ? (
                         <RecordButton
                             isRecording={isRecording}

@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 import ChatDisplay from "./components/ChatDisplay";
-import useTextToSpeechAPI from "./hooks/useTextToSpeechAPI";
 import useAudioPlayer from "./hooks/useAudioPlayer";
-import useTypewriter from "./hooks/useTypeWriter";
 import InputArea from "./components/InputArea";
 import ChatHistoryButton from "./components/ChatHistoryButton";
 import ChatHistoryDisplay from "./components/ChatHistoryDisplay";
@@ -53,21 +51,6 @@ export default function Alpha() {
             { sender: sender, text: text, image: "" },
         ]);
     });
-
-    /*
-    const {
-        isLoading,
-        audioQueue,
-        setAudioQueue,
-        submitQuery         // Submits query to backend, adds query to msg history, addes fetched response to history
-    } = useTextToSpeechAPI(transcript, imageInput,
-        (sender: string, text: string, image: string) => {
-            setMsgHistory(msg => [...msg,
-            { sender: sender, text: text, image: image }
-            ]);
-        }
-    );
-    */
 
     const audioRef = useRef<HTMLAudioElement>(null);
     const { isPlaying, currentItem } = useAudioPlayer({

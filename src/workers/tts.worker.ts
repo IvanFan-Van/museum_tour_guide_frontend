@@ -12,6 +12,7 @@ async function initializeTTS() {
     try {
         tts = await KokoroTTS.from_pretrained(model_id, {
             dtype: "q8",
+            device: "wasm",
         });
         // 通知主线程模型已准备就绪
         self.postMessage({ type: "INITIALIZED" });
