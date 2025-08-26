@@ -25,16 +25,16 @@ function initializeTTS() {
             console.log("加载 TTS 模型...");
             const model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
             let device: "wasm" | "webgpu" = "wasm";
-            if (typeof navigator !== "undefined" && "gpu" in navigator) {
-                device = "webgpu";
-                console.log(
-                    "Worker: WebGPU available, using for TTS inference."
-                );
-            } else {
-                console.log(
-                    "Worker: WebGPU not available, falling back to WASM."
-                );
-            }
+            // if (typeof navigator !== "undefined" && "gpu" in navigator) {
+            //     device = "webgpu";
+            //     console.log(
+            //         "Worker: WebGPU available, using for TTS inference."
+            //     );
+            // } else {
+            //     console.log(
+            //         "Worker: WebGPU not available, falling back to WASM."
+            //     );
+            // }
             try {
                 tts = await KokoroTTS.from_pretrained(model_id, {
                     dtype: "q8",

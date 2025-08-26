@@ -72,6 +72,7 @@ export default function useTTSApi(
                 resultItem.audio.audio,
                 resultItem.audio.sampling_rate
             );
+
             const blob = audio.toBlob();
             const url = URL.createObjectURL(blob);
 
@@ -92,7 +93,6 @@ export default function useTTSApi(
 
     // 初始化音频播放器
     const handlePlaybackEnded = useCallback(() => {
-        console.log("end consuming  ");
         isPlayingRef.current = false;
         nextExpectedAudioIdRef.current++;
     }, []);
