@@ -1,3 +1,8 @@
+/**
+ * 清理 markdown 语法
+ * @param markdown
+ * @returns
+ */
 export function cleanMarkdownText(markdown: string): string {
     let text: string = markdown;
 
@@ -41,6 +46,13 @@ export function cleanMarkdownText(markdown: string): string {
     return text;
 }
 
+/**
+ * 将大段文本根据 minLength 以及 maxLength 划分成小段文本
+ * @param text
+ * @param minLength
+ * @param maxLength
+ * @returns
+ */
 export function segment(
     text: string,
     minLength: number,

@@ -24,7 +24,9 @@ export default function App() {
     const [qrValue, setQrValue] = useState("");
 
     // State for message histroy
-    const [messageHistory, setMessageHistory] = useState<Message[]>([]);
+    const [messageHistory, setMessageHistory] = useState<Message[]>([
+        { sender: "bot", text: "Hi! How can I help you?", image: "" },
+    ]);
     // State to determine whether to display chat history in place of current output
     const [displayHistory, setDisplayHistory] = useState(false);
     // --- LOGIC HOOKS ---
@@ -36,6 +38,12 @@ export default function App() {
     } = useSpeechRecognition();
     const audioRef = useRef<HTMLAudioElement>(null);
 
+    /**
+     * 添加历史记录
+     * @param sender 发送者
+     * @param text 文本
+     * @param image 图像
+     */
     const addMessageHistory = (
         sender: string,
         text: string,
