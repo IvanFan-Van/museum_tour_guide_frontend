@@ -1,7 +1,6 @@
 import type { Dispatch, Ref, SetStateAction } from "react";
 export default function InputTextDisplay({
     text,
-    image,
     setTextInput,
     isLoading,
     isRecording,

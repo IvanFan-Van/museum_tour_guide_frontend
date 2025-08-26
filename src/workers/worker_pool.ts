@@ -88,7 +88,7 @@ export class WorkerPool<Data, Result> {
 
     public terminate(): void {
         this.taskQueue.clear();
-        for (const { id, worker } of this.idleWorkers) {
+        for (const { worker } of this.idleWorkers) {
             worker.terminate();
         }
         for (const worker of this.activeWorkers.keys()) {

@@ -9,8 +9,6 @@ import Logo from "./assets/UMAG-logo.svg";
 import ScannerPage from "./components/ScannerPage";
 import useTTSApi from "./hooks/useTTSApi";
 
-import * as ort from "onnxruntime-web/webgpu";
-
 interface Message {
     sender: string;
     text: string;
@@ -40,27 +38,20 @@ export default function Alpha() {
     } = useSpeechRecognition();
     const audioRef = useRef<HTMLAudioElement>(null);
 
-    const { typewriterText, setTypewriterText, isLoading, submitQuery } =
-        useTTSApi(transcript, audioRef, (sender: string, text: string) => {
+    const { setTypewriterText, isLoading, submitQuery } = useTTSApi(
+        transcript,
+        audioRef,
+        (sender: string, text: string) => {
             setMsgHistory((msg) => [
                 ...msg,
                 { sender: sender, text: text, image: "" },
             ]);
-        });
+        }
+    );
 
     // --- UI REFS & EFFECTS ---
     const chatTextAreaRef = useRef<HTMLDivElement>(null);
     const inputTextAreaRef = useRef<HTMLTextAreaElement>(null);
-
-    // Sync different text sources to the main display
-    // useEffect(() => {
-    //     if (isRecording) {
-    //         setTextInput(transcript);
-    //     }
-    //     if (currentItem) {
-    //         setTextOutput(typewriterText);
-    //     }
-    // }, [isRecording, transcript, currentItem, typewriterText]);
 
     // Handle voice input toggle
     const handleVoiceInput = () => {
@@ -104,12 +95,6 @@ export default function Alpha() {
             />
         );
     }
-
-    useEffect(() => {
-        async function main() {
-            const session = await ort.InferenceSession.create("./model.onnx");
-        }
-    }, []);
 
     // Chatbot Screen
     return (
