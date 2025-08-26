@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 import ChatDisplay from "./components/ChatDisplay";
-import useAudioPlayer from "./hooks/useAudioPlayer";
 import InputArea from "./components/InputArea";
 import ChatHistoryButton from "./components/ChatHistoryButton";
 import ChatHistoryDisplay from "./components/ChatHistoryDisplay";

@@ -69,6 +69,8 @@ export class WorkerPool<Data, Result> {
 
         if (!task) return;
 
+        console.log(`[线程 ${id}] 完成 [任务 ${task.priority}]`);
+
         if (error) {
             console.log(`[线程 ${id}] 发生错误: ${error}`);
             task.reject(error);

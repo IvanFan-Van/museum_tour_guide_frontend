@@ -11,6 +11,7 @@ import {
 import { RawAudio } from "@huggingface/transformers";
 import { WorkerPool } from "../workers/worker_pool"; // 导入我们的 WorkerPool
 import type { TTSWorkerTask, TTSWorkerResult } from "../workers/tts.worker";
+import { cleanMarkdownText, segment } from "../utils";
 
 const client = new Client({
     apiUrl: "http://10.147.19.97:8000",
@@ -24,7 +25,7 @@ type Chunk = {
     };
 };
 
-const NUM_WORKERS = 2;
+const NUM_WORKERS = 4;
 
 export default function useTTSApi(
     query: string,
@@ -58,9 +59,6 @@ export default function useTTSApi(
         if (!audioPlayer.current) return;
 
         const nextAudio = resultQueueRef.current.front();
-        console.log(
-            `audio ID: ${nextAudio?.id} 以及 nextExpectedAudioIdRef: ${nextExpectedAudioIdRef.current}`
-        );
         if (nextAudio && nextAudio.id === nextExpectedAudioIdRef.current) {
             isPlayingRef.current = true;
             const resultItem = resultQueueRef.current.dequeue();
@@ -131,6 +129,7 @@ export default function useTTSApi(
         };
     }, [audioPlayer]);
 
+    // 添加任务
     const submitQuery = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -162,10 +161,13 @@ export default function useTTSApi(
                     const newText = chunk["data"]["generation"];
                     setDisplayedText((prev) => prev + newText);
 
+                    console.log(`LLM 的生成文本: ${newText}`);
+                    const cleaned_text = cleanMarkdownText(newText);
+                    console.log(`清理后的文本: ${cleaned_text}`);
+
                     // 生产者逻辑
-                    const sentences = newText.match(/[^.!?]+[.!?]+/g) || [
-                        newText,
-                    ];
+                    const sentences = segment(cleaned_text, 64);
+                    console.log(`划分为 ${sentences.length} 个段落`);
                     for (const sentence of sentences) {
                         if (sentence.trim()) {
                             const currentId = textChunkIdRef.current++;
