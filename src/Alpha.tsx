@@ -10,6 +10,8 @@ import Logo from "./assets/UMAG-logo.svg";
 import ScannerPage from "./components/ScannerPage";
 import useTTSApi from "./hooks/useTTSApi";
 
+import * as ort from "onnxruntime-web/webgpu";
+
 interface Message {
     sender: string;
     text: string;
@@ -37,49 +39,29 @@ export default function Alpha() {
         startRecording,
         stopRecording,
     } = useSpeechRecognition();
-
-    const {
-        typewriterText,
-        setTypewriterText,
-        isLoading,
-        audioQueue,
-        setAudioQueue,
-        submitQuery,
-    } = useTTSApi(transcript, (sender: string, text: string) => {
-        setMsgHistory((msg) => [
-            ...msg,
-            { sender: sender, text: text, image: "" },
-        ]);
-    });
-
     const audioRef = useRef<HTMLAudioElement>(null);
-    const { isPlaying, currentItem } = useAudioPlayer({
-        audioQueue,
-        setAudioQueue,
-        audioRef,
-    });
 
-    const audioDuration = audioRef.current?.duration ?? 0;
-    /*
-    const { typewriterText, setTypewriterText } = useTypewriter(
-        currentItem?.text ?? null,
-        audioDuration > 1 ? audioDuration - 0.5 : 3
-    );
-    */
+    const { typewriterText, setTypewriterText, isLoading, submitQuery } =
+        useTTSApi(transcript, audioRef, (sender: string, text: string) => {
+            setMsgHistory((msg) => [
+                ...msg,
+                { sender: sender, text: text, image: "" },
+            ]);
+        });
 
     // --- UI REFS & EFFECTS ---
     const chatTextAreaRef = useRef<HTMLDivElement>(null);
     const inputTextAreaRef = useRef<HTMLTextAreaElement>(null);
 
     // Sync different text sources to the main display
-    useEffect(() => {
-        if (isRecording) {
-            setTextInput(transcript);
-        }
-        if (currentItem) {
-            setTextOutput(typewriterText);
-        }
-    }, [isRecording, transcript, currentItem, typewriterText]);
+    // useEffect(() => {
+    //     if (isRecording) {
+    //         setTextInput(transcript);
+    //     }
+    //     if (currentItem) {
+    //         setTextOutput(typewriterText);
+    //     }
+    // }, [isRecording, transcript, currentItem, typewriterText]);
 
     // Handle voice input toggle
     const handleVoiceInput = () => {
@@ -124,6 +106,12 @@ export default function Alpha() {
         );
     }
 
+    useEffect(() => {
+        async function main() {
+            const session = await ort.InferenceSession.create("./model.onnx");
+        }
+    }, []);
+
     // Chatbot Screen
     return (
         <div className="flex flex-col h-screen bg-linear-to-t from-[#252733] to-[#493E51] font-sans">
@@ -149,7 +137,7 @@ export default function Alpha() {
                 <InputArea
                     isRecording={isRecording}
                     isLoading={isLoading}
-                    isPlaying={isPlaying}
+                    isPlaying={false}
                     hasText={transcript.trim().length > 0}
                     onRecordClick={handleVoiceInput}
                     onSendClick={(e: React.FormEvent) => {

@@ -1,58 +1,73 @@
 import { KokoroTTS } from "kokoro-js";
+import { RawAudio } from "@huggingface/transformers";
 
 let tts: KokoroTTS | null = null;
+// 使用一个 Promise 来确保模型只被初始化一次
+let ttsInitializationPromise: Promise<void> | null = null;
+
+export interface TTSWorkerTask {
+    text: string;
+    id: number;
+}
+
+export interface TTSWorkerResult {
+    id: number;
+    audio: RawAudio;
+}
 
 /**
  * 异步初始化 TTS 模型。
- * 初始化完成后，向主线程发送 'INITIALIZED' 消息。
+ * 此函数确保模型只被加载一次。
  */
-async function initializeTTS() {
-    console.log("Initializing TTS model...");
-    const model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
-    try {
-        tts = await KokoroTTS.from_pretrained(model_id, {
-            dtype: "q8",
-            device: "wasm",
-        });
-        // 通知主线程模型已准备就绪
-        self.postMessage({ type: "INITIALIZED" });
-        console.log("TTS model initialized successfully.");
-    } catch (error) {
-        console.error("Failed to initialize TTS model in worker:", error);
-        self.postMessage({
-            type: "ERROR",
-            error: "Model initialization failed.",
-        });
+function initializeTTS() {
+    if (!ttsInitializationPromise) {
+        ttsInitializationPromise = (async () => {
+            console.log("加载 TTS 模型...");
+            const model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
+            let device: "wasm" | "webgpu" = "wasm";
+            if (typeof navigator !== "undefined" && "gpu" in navigator) {
+                device = "webgpu";
+                console.log(
+                    "Worker: WebGPU available, using for TTS inference."
+                );
+            } else {
+                console.log(
+                    "Worker: WebGPU not available, falling back to WASM."
+                );
+            }
+            try {
+                tts = await KokoroTTS.from_pretrained(model_id, {
+                    dtype: "q8",
+                    device,
+                });
+                console.log("成功加载模型");
+            } catch (error) {
+                console.error("加载模型失败:", error);
+                throw error; // 抛出错误以使 Promise 失败
+            }
+        })();
     }
+    return ttsInitializationPromise;
 }
 
-// 启动 TTS 初始化
 initializeTTS();
 
-/**
- * 监听来自主线程的消息。
- * 当接收到文本时，使用 TTS 模型生成音频并将其 URL 发送回主线程。
- */
-self.onmessage = async (event: MessageEvent<{ text: string }>) => {
-    if (!tts) {
-        console.error("TTS model is not yet initialized.");
-        self.postMessage({ type: "ERROR", error: "TTS not initialized" });
-        return;
-    }
-
-    const { text } = event.data;
+// --- 消息监听器 ---
+self.onmessage = async (event: MessageEvent<TTSWorkerTask>) => {
+    const { text, id } = event.data;
 
     try {
-        const audio = await tts.generate(text, {
-            voice: "af_heart",
-        });
-        const blob = audio.toBlob();
-        const url = URL.createObjectURL(blob);
+        await initializeTTS(); // 确保模型已加载
+        if (!tts) throw new Error("TTS model is not initialized.");
 
-        // 将生成的音频 URL 和原始文本发送回主线程
-        self.postMessage({ type: "RESULT", url, text });
+        const audio = await tts.generate(text, { voice: "af_heart" });
+
+        // 将结果发送回主线程
+        self.postMessage({ id, audio } as TTSWorkerResult);
     } catch (error) {
-        console.error("Error generating TTS in worker:", error);
-        self.postMessage({ type: "ERROR", error: (error as Error).message });
+        console.error(`Worker failed on task ID ${id}:`, error);
+        // 可以在这里通过 postMessage 发送一个错误对象，但 WorkerPool 的 onerror 已经可以捕获
+        // self.postMessage({ id, error: error.message });
+        throw error; // 抛出错误，让 WorkerPool 的 onerror 捕获
     }
 };

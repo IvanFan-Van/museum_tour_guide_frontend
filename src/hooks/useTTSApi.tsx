@@ -1,12 +1,20 @@
-import { TextSplitterStream } from "kokoro-js";
+import { MinPriorityQueue } from "@datastructures-js/priority-queue";
 import { Client } from "@langchain/langgraph-sdk";
-import { useState, useEffect, useRef } from "react";
+import {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    type RefObject,
+} from "react";
+// import WebWorker from "@/workers/tts.worker.ts?worker";
+import { RawAudio } from "@huggingface/transformers";
+import { WorkerPool } from "../workers/worker_pool"; // 导入我们的 WorkerPool
+import type { TTSWorkerTask, TTSWorkerResult } from "../workers/tts.worker";
 
 const client = new Client({
     apiUrl: "http://10.147.19.97:8000",
 });
-const splitter = new TextSplitterStream();
-// KokoroTTS 初始化代码已移至 web worker
 
 type Chunk = {
     event: string;
@@ -16,8 +24,11 @@ type Chunk = {
     };
 };
 
+const NUM_WORKERS = 2;
+
 export default function useTTSApi(
     query: string,
+    audioPlayer: RefObject<HTMLAudioElement | null>,
     addMessageHistory: (sender: string, text: string) => void
 ) {
     const [displayedText, setDisplayedText] = useState("");
@@ -25,90 +36,173 @@ export default function useTTSApi(
         Array<{ url: string; text: string }>
     >([]);
     const [isLoading, setIsLoading] = useState(false);
-    const workerRef = useRef<Worker | null>(null);
 
-    useEffect(() => {
-        // 创建一个新的 worker 实例
-        const worker = new Worker(
-            new URL("../workers/tts.worker.ts", import.meta.url),
-            {
-                type: "module",
-            }
+    // 中间状态
+    // --- Refs for state management ---
+    const workerPoolRef = useRef<WorkerPool<
+        TTSWorkerTask,
+        TTSWorkerResult
+    > | null>(null);
+    const resultQueueRef = useRef(
+        new MinPriorityQueue<TTSWorkerResult>((item) => item.id)
+    );
+    const nextExpectedAudioIdRef = useRef(0);
+    const isPlayingRef = useRef(false);
+    const textChunkIdRef = useRef(0);
+    const currentObjectUrlRef = useRef<string | null>(null);
+
+    // --- 消费者：音频播放逻辑 ---
+    const consumeAudioQueue = useCallback(() => {
+        if (isPlayingRef.current || resultQueueRef.current.isEmpty()) return;
+
+        if (!audioPlayer.current) return;
+
+        const nextAudio = resultQueueRef.current.front();
+        console.log(
+            `audio ID: ${nextAudio?.id} 以及 nextExpectedAudioIdRef: ${nextExpectedAudioIdRef.current}`
         );
-        workerRef.current = worker;
+        if (nextAudio && nextAudio.id === nextExpectedAudioIdRef.current) {
+            isPlayingRef.current = true;
+            const resultItem = resultQueueRef.current.dequeue();
+            if (!resultItem) {
+                return;
+            }
+            console.log(`[消费者]正在消费 [音频 ${resultItem.id}]`);
+            const audio = new RawAudio(
+                resultItem.audio.audio,
+                resultItem.audio.sampling_rate
+            );
+            const blob = audio.toBlob();
+            const url = URL.createObjectURL(blob);
 
-        // 监听来自 worker 的消息
-        worker.onmessage = (
-            event: MessageEvent<{
-                type: string;
-                url?: string;
-                text?: string;
-                error?: string;
-            }>
-        ) => {
-            const { type, url, text, error } = event.data;
-            if (type === "RESULT" && url && text) {
-                // 将收到的音频 URL 添加到播放队列
-                setAudioQueue((prev) => [...prev, { url, text }]);
-                setIsLoading(false);
-            } else if (type === "INITIALIZED") {
-                console.log("TTS Worker is ready.");
-            } else if (type === "ERROR") {
-                console.error("TTS Worker Error:", error);
+            // 清理上一个 ObjectURL
+            if (currentObjectUrlRef.current) {
+                URL.revokeObjectURL(currentObjectUrlRef.current);
+            }
+
+            console.log(url);
+
+            audioPlayer.current.src = url;
+            audioPlayer.current.play().catch((e) => {
+                console.error("Audio playback failed: ", e);
+                isPlayingRef.current = false;
+            });
+        }
+    }, []);
+
+    // 初始化音频播放器
+    const handlePlaybackEnded = useCallback(() => {
+        console.log("end consuming  ");
+        isPlayingRef.current = false;
+        nextExpectedAudioIdRef.current++;
+    }, []);
+
+    // --- 初始化和清理 ---
+    useEffect(() => {
+        if (!audioPlayer.current) {
+            return;
+        }
+
+        // 初始化 Worker 池
+        const workerUrl = new URL("../workers/tts.worker.ts", import.meta.url);
+        workerPoolRef.current = new WorkerPool<TTSWorkerTask, TTSWorkerResult>(
+            workerUrl,
+            NUM_WORKERS
+        );
+
+        audioPlayer.current.addEventListener("ended", handlePlaybackEnded);
+
+        // 消费者线程
+        const consumerInterval = setInterval(() => {
+            consumeAudioQueue();
+        }, 100);
+
+        // 清理函数
+        return () => {
+            clearInterval(consumerInterval);
+            audioPlayer.current?.removeEventListener(
+                "ended",
+                handlePlaybackEnded
+            );
+            workerPoolRef.current?.terminate();
+            if (currentObjectUrlRef.current) {
+                URL.revokeObjectURL(currentObjectUrlRef.current);
             }
         };
-
-        // 组件卸载时终止 worker
-        return () => {
-            worker.terminate();
-            workerRef.current = null;
-        };
-    }, []);
+    }, [audioPlayer]);
 
     const submitQuery = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!query.trim() || !workerRef.current) return;
+        if (!query.trim()) return;
 
         setIsLoading(true);
         addMessageHistory("user", query);
 
-        const assistants = await client.assistants.search({
-            metadata: null,
-            offset: 0,
-            limit: 10,
-        });
-        const agent = assistants[0];
-        const thread = await client.threads.create();
-        const messages = [{ role: "human", content: query }];
+        try {
+            const assistants = await client.assistants.search({
+                metadata: null,
+                offset: 0,
+                limit: 10,
+            });
+            const agent = assistants[0];
+            const thread = await client.threads.create();
+            const messages = [{ role: "human", content: query }];
 
-        const streamResponse = client.runs.stream(
-            thread["thread_id"],
-            agent["assistant_id"],
-            {
-                input: { messages },
-            }
-        );
+            const streamResponse = client.runs.stream(
+                thread["thread_id"],
+                agent["assistant_id"],
+                {
+                    input: { messages },
+                }
+            );
 
-        for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
-            if (chunk["event"] == "values" && chunk["data"]["generation"]) {
-                const newText = chunk["data"]["generation"];
-                setDisplayedText((prev) => prev + newText);
+            for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
+                if (chunk["event"] == "values" && chunk["data"]["generation"]) {
+                    const newText = chunk["data"]["generation"];
+                    setDisplayedText((prev) => prev + newText);
 
-                // 将文本块发送到 worker 进行处理
-                const textToSpeak =
-                    newText.match(
-                        /[a-zA-Z0-9\u4e00-\u9fa5\s.,?!'":;()\[\]{}-]+/g
-                    ) || [];
-                if (textToSpeak.length > 0) {
-                    workerRef.current?.postMessage({
-                        text: textToSpeak.join(""),
-                    });
+                    // 生产者逻辑
+                    const sentences = newText.match(/[^.!?]+[.!?]+/g) || [
+                        newText,
+                    ];
+                    for (const sentence of sentences) {
+                        if (sentence.trim()) {
+                            const currentId = textChunkIdRef.current++;
+
+                            console.log(
+                                `添加 [任务 ${currentId}]: ${sentence}`
+                            );
+                            // 提交任务到 WorkerPool
+                            workerPoolRef.current
+                                ?.run(
+                                    { text: sentence, id: currentId },
+                                    currentId
+                                )
+                                .then((result) => {
+                                    // 任务完成，将结果放入结果队列
+                                    resultQueueRef.current.enqueue(result);
+                                    // 尝试播放
+                                    consumeAudioQueue();
+                                })
+                                .catch((error) => {
+                                    console.error(
+                                        `Task ID ${currentId} failed:`,
+                                        error
+                                    );
+                                });
+                        }
+                    }
                 }
             }
+        } catch (error) {
+            console.error("An error occurred during the stream:", error);
+            addMessageHistory("system", "Sorry, an error occurred.");
+        } finally {
+            await workerPoolRef.current?.completed();
+            setIsLoading(false);
+            console.log("所有任务均已完成");
         }
-
-        splitter.flush();
     };
 
     return {
