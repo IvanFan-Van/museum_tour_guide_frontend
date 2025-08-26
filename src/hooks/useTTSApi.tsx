@@ -159,6 +159,7 @@ export default function useTTSApi(
                 if (chunk["event"] == "values" && chunk["data"]["generation"]) {
                     const newText = chunk["data"]["generation"];
 
+                    setTextoutput(newText);
                     console.log(`LLM 的生成文本: ${newText}`);
                     const cleaned_text = cleanMarkdownText(newText);
                     console.log(`清理后的文本: ${cleaned_text}`);

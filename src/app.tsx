@@ -15,11 +15,10 @@ interface Message {
     image: string;
 }
 
-export default function Alpha() {
+export default function App() {
     // State for the text shown in the main display
     const [textOutput, setTextOutput] = useState("Hi! How can I help you?");
     const [textInput, setTextInput] = useState("");
-    const [imageInput, setImageInput] = useState("");
     // State to determine if qr code scanner mode is active
     const [scannerMode, setScannerMode] = useState(false);
     const [qrValue, setQrValue] = useState("");
@@ -120,7 +119,6 @@ export default function Alpha() {
                 <InputArea
                     isRecording={isRecording}
                     isLoading={isLoading}
-                    isPlaying={isPlayingRef.current}
                     onRecordClick={handleVoiceInput}
                     onSendClick={(e: React.FormEvent) => {
                         if (textOutput.trim().length > 0) {
@@ -132,7 +130,6 @@ export default function Alpha() {
                         }
                         submitQuery(e);
                     }}
-                    onTakePhotoClick={setImageInput}
                     inputTextAreaRef={inputTextAreaRef}
                     textInput={textInput}
                     setTextInput={(value) => {
@@ -140,7 +137,7 @@ export default function Alpha() {
                         setTextInput(value);
                     }}
                     setScannerMode={setScannerMode}
-                    imageInput={imageInput}
+                    onTakePhotoClick={setQrValue}
                 />
             </footer>
 

@@ -1,5 +1,4 @@
 import RecordButton from "./RecordButton";
-import WaveformButton from "./WaveformButton";
 import SendButton from "./SendButton";
 import TakePhotoButton from "./TakePhotoButton";
 import type { Dispatch, Ref, SetStateAction } from "react";
@@ -9,9 +8,7 @@ import QRCodeIcon from "../assets/QRCode.svg";
 export default function InputArea({
     isRecording,
     isLoading,
-    isPlaying,
     textInput,
-    imageInput,
     setTextInput,
     onRecordClick,
     onSendClick,
@@ -21,9 +18,7 @@ export default function InputArea({
 }: {
     isRecording: boolean;
     isLoading: boolean;
-    isPlaying: boolean;
     textInput: string;
-    imageInput: string;
     setTextInput: Dispatch<SetStateAction<string>>;
     onRecordClick: () => void;
     onSendClick: (e: React.FormEvent) => void;
@@ -50,13 +45,6 @@ export default function InputArea({
                             isRecording={isRecording}
                             isLoading={isLoading}
                             onRecordClick={onRecordClick}
-                        />
-                    ) : isPlaying ? (
-                        <WaveformButton
-                            stopPlaying={() => {
-                                return;
-                            }}
-                            isPlaying={false}
                         />
                     ) : (
                         <SendButton
