@@ -10,7 +10,6 @@ export default function InputArea({
     isRecording,
     isLoading,
     isPlaying,
-    hasText,
     textInput,
     imageInput,
     setTextInput,
@@ -22,7 +21,6 @@ export default function InputArea({
 }: {
     isRecording: boolean;
     isLoading: boolean;
-    hasText: boolean;
     isPlaying: boolean;
     textInput: string;
     imageInput: string;
@@ -33,12 +31,13 @@ export default function InputArea({
     setScannerMode: Dispatch<SetStateAction<boolean>>;
     inputTextAreaRef: Ref<HTMLTextAreaElement> | undefined;
 }) {
+    const hasText = textInput.trim().length > 0;
+
     return (
         <div className="flex flex-col">
             <InputTextDisplay
                 text={textInput}
                 setTextInput={setTextInput}
-                image={imageInput}
                 isRecording={isRecording}
                 isLoading={isLoading}
                 inputTextAreaRef={inputTextAreaRef}

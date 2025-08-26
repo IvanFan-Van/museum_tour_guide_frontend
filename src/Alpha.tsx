@@ -31,16 +31,16 @@ export default function Alpha() {
     // --- LOGIC HOOKS ---
     const {
         isRecording, // Is the client recording
-        transcript, // STT output
         setTranscript,
         startRecording,
         stopRecording,
     } = useSpeechRecognition();
     const audioRef = useRef<HTMLAudioElement>(null);
 
-    const { setTypewriterText, isLoading, submitQuery } = useTTSApi(
-        transcript,
+    const { isLoading, submitQuery, isPlayingRef } = useTTSApi(
+        textInput,
         audioRef,
+        setTextOutput,
         (sender: string, text: string) => {
             setMsgHistory((msg) => [
                 ...msg,
@@ -60,7 +60,6 @@ export default function Alpha() {
         } else {
             setTextInput("");
             setTranscript("");
-            setTypewriterText("");
             startRecording();
         }
     };
@@ -121,8 +120,7 @@ export default function Alpha() {
                 <InputArea
                     isRecording={isRecording}
                     isLoading={isLoading}
-                    isPlaying={false}
-                    hasText={transcript.trim().length > 0}
+                    isPlaying={isPlayingRef.current}
                     onRecordClick={handleVoiceInput}
                     onSendClick={(e: React.FormEvent) => {
                         if (textOutput.trim().length > 0) {
@@ -131,7 +129,6 @@ export default function Alpha() {
                                 { sender: "bot", text: textOutput, image: "" },
                             ]);
                             setTextOutput("");
-                            setTypewriterText("");
                         }
                         submitQuery(e);
                     }}

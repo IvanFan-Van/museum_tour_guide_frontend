@@ -6,6 +6,8 @@ import {
     useRef,
     useCallback,
     type RefObject,
+    type Dispatch,
+    type SetStateAction,
 } from "react";
 // import WebWorker from "@/workers/tts.worker.ts?worker";
 import { RawAudio } from "@huggingface/transformers";
@@ -30,16 +32,10 @@ const NUM_WORKERS = 4;
 export default function useTTSApi(
     query: string,
     audioPlayer: RefObject<HTMLAudioElement | null>,
+    setTextoutput: Dispatch<SetStateAction<string>>,
     addMessageHistory: (sender: string, text: string) => void
 ) {
-    const [displayedText, setDisplayedText] = useState("");
-    const [audioQueue, setAudioQueue] = useState<
-        Array<{ url: string; text: string }>
-    >([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    // 中间状态
-    // --- Refs for state management ---
     const workerPoolRef = useRef<WorkerPool<
         TTSWorkerTask,
         TTSWorkerResult
@@ -66,6 +62,9 @@ export default function useTTSApi(
                 return;
             }
             console.log(`[消费者]正在消费 [音频 ${resultItem.id}]`);
+
+            // 设置文本输出
+
             const audio = new RawAudio(
                 resultItem.audio.audio,
                 resultItem.audio.sampling_rate
@@ -159,7 +158,6 @@ export default function useTTSApi(
             for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
                 if (chunk["event"] == "values" && chunk["data"]["generation"]) {
                     const newText = chunk["data"]["generation"];
-                    setDisplayedText((prev) => prev + newText);
 
                     console.log(`LLM 的生成文本: ${newText}`);
                     const cleaned_text = cleanMarkdownText(newText);
@@ -208,11 +206,8 @@ export default function useTTSApi(
     };
 
     return {
-        typewriterText: displayedText,
-        setTypewriterText: setDisplayedText,
         isLoading,
-        audioQueue,
-        setAudioQueue,
+        isPlayingRef,
         submitQuery,
     };
 }

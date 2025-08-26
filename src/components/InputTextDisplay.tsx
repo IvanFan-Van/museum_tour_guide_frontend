@@ -7,7 +7,6 @@ export default function InputTextDisplay({
     inputTextAreaRef,
 }: {
     text: string;
-    image: string;
     setTextInput: Dispatch<SetStateAction<string>>;
     isRecording: boolean;
     isLoading: boolean;
