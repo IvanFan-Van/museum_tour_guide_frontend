@@ -9,6 +9,7 @@ import {
     type Dispatch,
     type SetStateAction,
 } from "react";
+import TTSWorker from "../workers/tts.worker.ts?worker";
 // import WebWorker from "@/workers/tts.worker.ts?worker";
 import { RawAudio } from "@huggingface/transformers";
 import { WorkerPool } from "../workers/worker_pool"; // 导入我们的 WorkerPool
@@ -102,9 +103,9 @@ export default function useTTSApi(
         }
 
         // 初始化 Worker 池
-        const workerUrl = new URL("../workers/tts.worker.ts", import.meta.url);
+        // const workerUrl = new URL("../workers/tts.worker.ts", import.meta.url); // <- 移除这一行
         workerPoolRef.current = new WorkerPool<TTSWorkerTask, TTSWorkerResult>(
-            workerUrl,
+            TTSWorker, // <- 直接传递导入的 Worker 构造函数
             NUM_WORKERS
         );
 

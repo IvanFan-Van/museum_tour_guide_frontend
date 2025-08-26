@@ -8,7 +8,7 @@ interface Task<Data, Result> {
 }
 
 export class WorkerPool<Data, Result> {
-    private workerScript: URL;
+    private workerConstructor: new () => Worker;
     private idleWorkers = new MinPriorityQueue<{ id: number; worker: Worker }>(
         (item) => item.id
     );
@@ -18,17 +18,17 @@ export class WorkerPool<Data, Result> {
     );
 
     constructor(
-        workerScriptURL: URL,
+        workerConstructor: new () => Worker,
         poolSize: number = navigator.hardwareConcurrency
     ) {
-        this.workerScript = workerScriptURL;
+        this.workerConstructor = workerConstructor;
         this.initializePool(poolSize);
     }
 
     private initializePool(size: number): void {
         for (let i = 0; i < size; i++) {
             // 创建 worker
-            const worker = new Worker(this.workerScript, { type: "module" });
+            const worker = new this.workerConstructor();
             console.log(`创建 [线程 ${i + 1}]`);
             worker.onmessage = (event: MessageEvent<Result>) => {
                 this.onWorkerFinished(i + 1, worker, event.data, null);
