@@ -105,7 +105,7 @@ export default function useTTSApi(
         // 初始化 Worker 池
         // const workerUrl = new URL("../workers/tts.worker.ts", import.meta.url); // <- 移除这一行
         workerPoolRef.current = new WorkerPool<TTSWorkerTask, TTSWorkerResult>(
-            TTSWorker, // <- 直接传递导入的 Worker 构造函数
+            TTSWorker,
             NUM_WORKERS
         );
 

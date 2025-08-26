@@ -15,8 +15,8 @@ export function cleanMarkdownText(markdown: string): string {
     // 2. 移除 Markdown 图像链接 ![caption](url)，包括 caption 和 URL
     text = text.replace(/!\[.*?\]\(.*?\)/g, "");
 
-    // 3. 保留 Markdown 链接 [text](url) 中的 text
-    text = text.replace(/\[([^\]]*)\]\(.*?\)/g, "$1");
+    // // 3. 保留 Markdown 链接 [text](url) 中的 text
+    // text = text.replace(/\[([^\]]*)\]\(.*?\)/g, "$1");
 
     // 4. 移除加粗 **text** 或 __text__
     text = text.replace(/(?:\*\*|__)(.*?)(?:\*\*|__)/g, "$1");
@@ -39,9 +39,9 @@ export function cleanMarkdownText(markdown: string): string {
     text = text.replace(/<[^>]+>/g, "");
 
     // 10. 清理多余的换行和空格
-    text = text.replace(/\n{2,}/g, "\n"); // 多个换行合并为一个
-    text = text.replace(/^\s+|\s+$/gm, ""); // 移除每行首尾空格
-    text = text.trim(); // 移除文本首尾空格
+    text = text.replace(/\n{2,}/g, "\n\n"); // 多个换行合并为一个
+    // text = text.replace(/^\s+|\s+$/gm, ""); // 移除每行首尾空格
+    // text = text.trim(); // 移除文本首尾空格
 
     return text;
 }
