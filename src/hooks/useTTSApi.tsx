@@ -47,6 +47,7 @@ export default function useTTSApi(
     const isPlayingRef = useRef(false);
     const textChunkIdRef = useRef(0);
     const currentObjectUrlRef = useRef<string | null>(null);
+    const textRef = useRef("");
 
     // --- 消费者：音频播放逻辑 ---
     const consumeAudioQueue = useCallback(() => {
@@ -64,7 +65,7 @@ export default function useTTSApi(
             console.log(`[消费者]正在消费 [音频 ${resultItem.id}]`);
 
             // 设置文本输出
-
+            setTextoutput(textRef.current);
             const audio = new RawAudio(
                 resultItem.audio.audio,
                 resultItem.audio.sampling_rate
@@ -158,9 +159,8 @@ export default function useTTSApi(
             for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
                 if (chunk["event"] == "values" && chunk["data"]["generation"]) {
                     const newText = chunk["data"]["generation"];
+                    textRef.current = newText;
 
-                    // 设置屏幕输出
-                    setTextoutput(newText);
                     // 添加聊天记录
                     addMessageHistory("bot", newText);
 

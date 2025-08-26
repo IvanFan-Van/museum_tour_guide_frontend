@@ -1,5 +1,18 @@
 import Markdown from "react-markdown";
 
+const scrollbarStyles = `
+    overflow-y-auto flex flex-col bg-stone-900 rounded-xl w-full h-full p-3
+    [&::-webkit-scrollbar]:w-2
+    [&::-webkit-scrollbar-track]:bg-transparent
+    [&::-webkit-scrollbar-thumb]:bg-neutral-700
+    [&::-webkit-scrollbar-thumb:hover]:bg-neutral-600
+    [&::-webkit-scrollbar-thumb]:rounded-full
+`;
+
+const messageBaseStyle = "max-w-[80%] my-1 p-3 rounded-xl break-words";
+const botMessageStyle = `${messageBaseStyle} bg-gray-700 self-start`;
+const userMessageStyle = `${messageBaseStyle} bg-blue-800 self-end`;
+
 export default function ChatHistoryDisplay({
     messageHistory,
 }: {
@@ -10,31 +23,38 @@ export default function ChatHistoryDisplay({
     }[];
 }) {
     return (
-        <div
-            className={`overflow-y-auto flex flex-col bg-stone-900 rounded-xl w-[100%] h-[100%] p-3
-            [&::-webkit-scrollbar]:w-3
-            [&::-webkit-scrollbar-track]:bg-transparent
-            [&::-webkit-scrollbar-thumb]:bg-neutral-800
-            [&::-webkit-scrollbar-thumb]:duration-150
-            [&::-webkit-scrollbar-thumb]:transition-all
-            [&::-webkit-scrollbar-thumb:hover]:bg-neutral-600
-            [&::-webkit-scrollbar-thumb]:rounded-full
-            [&::-webkit-scrollbar-track]:rounded-full`}
-        >
-            {messageHistory.map((msg, i) => (
-                <div
-                    className={
-                        msg.sender === "bot"
-                            ? "max-w-[75%] my-[6px] p-[12px] bg-[#473246] rounded-xl self-start"
-                            : "max-w-[75%] my-[6px] p-[12px] bg-[#3D355D] rounded-xl self-end"
-                    }
-                    key={i}
-                >
-                    <div className="text-xs text-white">
-                        <Markdown>{msg.text + "\n" + msg.image}</Markdown>
+        <div className={scrollbarStyles}>
+            {messageHistory.map((msg, i) => {
+                const messageContent = `${msg.text}${
+                    msg.image ? `\n\n![image](${msg.image})` : ""
+                }`;
+
+                return (
+                    <div
+                        className={
+                            msg.sender === "bot"
+                                ? botMessageStyle
+                                : userMessageStyle
+                        }
+                        key={i}
+                    >
+                        <div className="text-sm text-white">
+                            <Markdown
+                                components={{
+                                    a: ({ node, ...props }) => (
+                                        <a
+                                            className="text-blue-300 hover:underline"
+                                            {...props}
+                                        />
+                                    ),
+                                }}
+                            >
+                                {messageContent}
+                            </Markdown>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
