@@ -159,7 +159,11 @@ export default function useTTSApi(
                 if (chunk["event"] == "values" && chunk["data"]["generation"]) {
                     const newText = chunk["data"]["generation"];
 
+                    // 设置屏幕输出
                     setTextoutput(newText);
+                    // 添加聊天记录
+                    addMessageHistory("bot", newText);
+
                     console.log(`LLM 的生成文本: ${newText}`);
                     const cleaned_text = cleanMarkdownText(newText);
                     console.log(`清理后的文本: ${cleaned_text}`);

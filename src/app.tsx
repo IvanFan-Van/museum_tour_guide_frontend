@@ -24,7 +24,7 @@ export default function App() {
     const [qrValue, setQrValue] = useState("");
 
     // State for message histroy
-    const [msgHistory, setMsgHistory] = useState<Message[]>([]);
+    const [messageHistory, setMessageHistory] = useState<Message[]>([]);
     // State to determine whether to display chat history in place of current output
     const [displayHistory, setDisplayHistory] = useState(false);
     // --- LOGIC HOOKS ---
@@ -36,16 +36,19 @@ export default function App() {
     } = useSpeechRecognition();
     const audioRef = useRef<HTMLAudioElement>(null);
 
-    const { isLoading, submitQuery, isPlayingRef } = useTTSApi(
+    const addMessageHistory = (
+        sender: string,
+        text: string,
+        image: string = ""
+    ) => {
+        setMessageHistory((prev) => [...prev, { sender, text, image: image }]);
+    };
+
+    const { isLoading, submitQuery } = useTTSApi(
         textInput,
         audioRef,
         setTextOutput,
-        (sender: string, text: string) => {
-            setMsgHistory((msg) => [
-                ...msg,
-                { sender: sender, text: text, image: "" },
-            ]);
-        }
+        addMessageHistory
     );
 
     // --- UI REFS & EFFECTS ---
@@ -107,7 +110,7 @@ export default function App() {
             </header>
             <main className="mx-[2vw] flex-1 p-4 px-6 flex items-center justify-center relative overflow-hidden">
                 {displayHistory ? (
-                    <ChatHistoryDisplay messageHistory={msgHistory} />
+                    <ChatHistoryDisplay messageHistory={messageHistory} />
                 ) : (
                     <ChatDisplay
                         textareaRef={chatTextAreaRef}
@@ -120,20 +123,10 @@ export default function App() {
                     isRecording={isRecording}
                     isLoading={isLoading}
                     onRecordClick={handleVoiceInput}
-                    onSendClick={(e: React.FormEvent) => {
-                        if (textOutput.trim().length > 0) {
-                            setMsgHistory((msg) => [
-                                ...msg,
-                                { sender: "bot", text: textOutput, image: "" },
-                            ]);
-                            setTextOutput("");
-                        }
-                        submitQuery(e);
-                    }}
+                    onSendClick={submitQuery}
                     inputTextAreaRef={inputTextAreaRef}
                     textInput={textInput}
                     setTextInput={(value) => {
-                        setTranscript(value);
                         setTextInput(value);
                     }}
                     setScannerMode={setScannerMode}
