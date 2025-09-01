@@ -37,6 +37,7 @@ export default function useTTSApi(
     addMessageHistory: (sender: string, text: string) => void
 ) {
     const [isLoading, setIsLoading] = useState(false);
+    const [startPlaying, setStartPlaying] = useState(false); // 是否开始播放音频
     const workerPoolRef = useRef<WorkerPool<
         TTSWorkerTask,
         TTSWorkerResult
@@ -52,12 +53,19 @@ export default function useTTSApi(
 
     // --- 消费者：音频播放逻辑 ---
     const consumeAudioQueue = useCallback(() => {
+        // 检查是否播放了最后一个音频, 如果是则设置 startPlaying 为 false
+        if (nextExpectedAudioIdRef.current >= textChunkIdRef.current) {
+            setStartPlaying(false);
+        }
+
         if (isPlayingRef.current || resultQueueRef.current.isEmpty()) return;
 
         if (!audioPlayer.current) return;
 
         const nextAudio = resultQueueRef.current.front();
         if (nextAudio && nextAudio.id === nextExpectedAudioIdRef.current) {
+            setStartPlaying(true);
+
             isPlayingRef.current = true;
             const resultItem = resultQueueRef.current.dequeue();
             if (!resultItem) {
@@ -213,7 +221,7 @@ export default function useTTSApi(
 
     return {
         isLoading,
-        isPlayingRef,
+        startPlaying,
         submitQuery,
     };
 }

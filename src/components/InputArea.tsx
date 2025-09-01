@@ -4,11 +4,13 @@ import TakePhotoButton from "./TakePhotoButton";
 import type { Dispatch, Ref, SetStateAction } from "react";
 import InputTextDisplay from "./InputTextDisplay";
 import QRCodeIcon from "../assets/QRCode.svg";
+import SoundWave from "./SoundWave";
 
 export default function InputArea({
     isRecording,
     isLoading,
     textInput,
+    startPlaying,
     setTextInput,
     onRecordClick,
     onSendClick,
@@ -19,6 +21,7 @@ export default function InputArea({
     isRecording: boolean;
     isLoading: boolean;
     textInput: string;
+    startPlaying: boolean;
     setTextInput: Dispatch<SetStateAction<string>>;
     onRecordClick: () => void;
     onSendClick: (e: React.FormEvent) => void;
@@ -27,6 +30,29 @@ export default function InputArea({
     inputTextAreaRef: Ref<HTMLTextAreaElement> | undefined;
 }) {
     const hasText = textInput.trim().length > 0;
+
+    const getButton = () => {
+        if (startPlaying) {
+            return <SoundWave />;
+        } else if (isRecording || (!hasText && !isLoading)) {
+            return (
+                <RecordButton
+                    isRecording={isRecording}
+                    isLoading={isLoading}
+                    onRecordClick={onRecordClick}
+                />
+            );
+        } else {
+            return (
+                <SendButton
+                    isRecording={isRecording}
+                    isLoading={isLoading}
+                    hasText={hasText}
+                    onSendClick={onSendClick}
+                />
+            );
+        }
+    };
 
     return (
         <div className="flex flex-col">
@@ -40,20 +66,7 @@ export default function InputArea({
             <div className="flex items-center gap-4">
                 <TakePhotoButton onClick={onTakePhotoClick} />
                 <div className="flex items-center justify-center px-4 grow-1">
-                    {isRecording || (!hasText && !isLoading) ? (
-                        <RecordButton
-                            isRecording={isRecording}
-                            isLoading={isLoading}
-                            onRecordClick={onRecordClick}
-                        />
-                    ) : (
-                        <SendButton
-                            isRecording={isRecording}
-                            isLoading={isLoading}
-                            hasText={hasText}
-                            onSendClick={onSendClick}
-                        />
-                    )}
+                    {getButton()}
                 </div>
                 <div className="size-[7vh] rounded-full focus:outline-none transition-all duration-200 flex items-center hover:opacity-50">
                     <button

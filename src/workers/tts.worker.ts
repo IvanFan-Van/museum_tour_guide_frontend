@@ -37,7 +37,7 @@ function initializeTTS() {
             // }
             try {
                 tts = await KokoroTTS.from_pretrained(model_id, {
-                    dtype: "q8",
+                    dtype: "q4",
                     device,
                 });
                 console.log("成功加载模型");

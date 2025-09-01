@@ -52,7 +52,7 @@ export default function App() {
         setMessageHistory((prev) => [...prev, { sender, text, image: image }]);
     };
 
-    const { isLoading, submitQuery } = useTTSApi(
+    const { isLoading, startPlaying, submitQuery } = useTTSApi(
         textInput,
         audioRef,
         setTextOutput,
@@ -130,6 +130,7 @@ export default function App() {
                 <InputArea
                     isRecording={isRecording}
                     isLoading={isLoading}
+                    startPlaying={startPlaying}
                     onRecordClick={handleVoiceInput}
                     onSendClick={submitQuery}
                     inputTextAreaRef={inputTextAreaRef}
