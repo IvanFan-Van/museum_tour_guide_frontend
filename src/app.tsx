@@ -142,7 +142,6 @@ export default function App() {
                     onTakePhotoClick={setQrValue}
                 />
             </footer>
-
             <audio ref={audioRef} />
         </div>
     );

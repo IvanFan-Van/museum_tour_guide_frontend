@@ -1,4 +1,4 @@
-import Markdown from "react-markdown";
+// import Markdown from "react-markdown";
 
 const scrollbarStyles = `
     overflow-y-auto flex flex-col bg-stone-900 rounded-xl w-full h-full p-3
@@ -9,52 +9,48 @@ const scrollbarStyles = `
     [&::-webkit-scrollbar-thumb]:rounded-full
 `;
 
-const messageBaseStyle = "max-w-[80%] my-1 p-3 rounded-xl break-words";
+const messageBaseStyle = "max-w-[80%] my-1 p-5 rounded-xl break-words";
 const botMessageStyle = `${messageBaseStyle} bg-gray-700 self-start`;
 const userMessageStyle = `${messageBaseStyle} bg-blue-800 self-end`;
 
-export default function ChatHistoryDisplay({
-    messageHistory,
-}: {
-    messageHistory: {
-        sender: string;
-        text: string;
-        image: string;
-    }[];
-}) {
-    return (
-        <div className={scrollbarStyles}>
-            {messageHistory.map((msg, i) => {
-                const messageContent = `${msg.text}${
-                    msg.image ? `\n\n![image](${msg.image})` : ""
-                }`;
+interface Message {
+  sender: string;
+  text: string;
+  image: string;
+}
 
-                return (
-                    <div
-                        className={
-                            msg.sender === "bot"
-                                ? botMessageStyle
-                                : userMessageStyle
-                        }
-                        key={i}
-                    >
-                        <div className="text-sm text-white">
-                            <Markdown
-                                components={{
-                                    a: ({ node, ...props }) => (
-                                        <a
-                                            className="text-blue-300 hover:underline"
-                                            {...props}
-                                        />
-                                    ),
-                                }}
-                            >
-                                {messageContent}
-                            </Markdown>
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
+export default function ChatHistoryDisplay({
+  messageHistory,
+}: {
+  messageHistory: Message[];
+}) {
+  const linkify = (text: string) =>
+    text.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" class="text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer">$1</a>'
     );
+
+  return (
+    <div className={scrollbarStyles}>
+      {messageHistory.map((msg, i) => {
+        let htmlContent = linkify(msg.text).replace(/\n/g, "<br />");
+        if (msg.image) {
+          htmlContent += `<br /><img src="${msg.image}" alt="image" class="max-w-full mt-2 rounded" />`;
+        }
+
+        return (
+          <div
+            className={
+              msg.sender === "bot" ? botMessageStyle : userMessageStyle
+            }
+            key={i}
+          >
+            <div className="text-3xl text-white">
+              <span dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
