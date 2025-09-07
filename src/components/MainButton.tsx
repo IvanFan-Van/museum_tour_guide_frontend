@@ -41,7 +41,7 @@ const MainButton = ({
     };
 
     return (
-        <div className="bg-white flex justify-center align-center rounded-lg px-8 py-2">
+        <div className="bg-white flex justify-center align-center rounded-lg w-full py-2 text-3xl">
             {getButton()}
         </div>
     );

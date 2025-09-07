@@ -11,7 +11,7 @@ const ChatDisplay = ({
     return (
         <div
             ref={textareaRef}
-            className={`w-full h-full overflow-y-auto bg-transparent border-none resize-none focus:outline-none text-left text-xl sm:text-4xl text-[#fff] leading-relaxed px-4
+            className={`w-full h-full overflow-y-auto bg-transparent border-none resize-none focus:outline-none text-left text-xl sm:text-4xl text-[#fff] leading-relaxed
             [&::-webkit-scrollbar]:w-3
             [&::-webkit-scrollbar-track]:bg-transparent
             [&::-webkit-scrollbar-thumb]:bg-neutral-600
@@ -30,7 +30,9 @@ const ChatDisplay = ({
                 WebkitMaskImage:
                     "linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)",
             }}
-        ><Markdown>{displayedText}</Markdown></div>
+        >
+            <Markdown>{displayedText}</Markdown>
+        </div>
     );
 };
 

@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 import ChatDisplay from "./components/ChatDisplay";
-import InputArea from "./components/InputArea";
 import ChatHistoryButton from "./components/ChatHistoryButton";
 import ChatHistoryDisplay from "./components/ChatHistoryDisplay";
 import SettingsButton from "./components/SettingsButton";
 import Logo from "./assets/UMAG-logo.svg";
 import ScannerPage from "./components/ScannerPage";
 import useTTSApi from "./hooks/useTTSApi";
+import InputTextDisplay from "./components/InputTextDisplay";
+import MainButton from "./components/MainButton";
+import CameraButton from "./components/CameraButton";
+import QRCodeButton from "./components/QRCodeButton";
 
 interface Message {
     sender: string;
@@ -105,18 +108,24 @@ export default function App() {
         );
     }
 
+    const hasText = textInput.trim().length > 0;
+
     // Chatbot Screen
     return (
-        <div className="flex flex-col h-screen bg-linear-to-t from-[#252733] to-[#493E51] font-sans">
-            <header className="px-4 py-2 mx-[2vw] flex flex-row items-center justify-between relative font-sans text-4xl">
+        <div className="px-8 py-6 flex flex-col h-screen bg-linear-to-t from-[#252733] to-[#493E51] font-sans">
+            <header className="text-white flex items-center justify-between relative text-5xl gap-4">
                 <ChatHistoryButton
                     setIsOpen={setDisplayHistory}
                     isOpen={displayHistory}
                 />
-                <img src={Logo} className="max-w-[60vw]  px-4" />
+                <div className="w-auto">
+                    <img src={Logo} className="w-full" />
+                </div>
+
                 <SettingsButton />
             </header>
-            <main className="mx-[2vw] flex-1 p-4 px-6 flex flex-col items-center justify-center relative overflow-hidden">
+            <main className="flex-1 py-6 flex flex-col items-center justify-center relative overflow-hidden">
+                {/* CHAT HISTORY */}
                 {displayHistory ? (
                     <ChatHistoryDisplay messageHistory={messageHistory} />
                 ) : (
@@ -126,20 +135,31 @@ export default function App() {
                     />
                 )}
 
-                <InputArea
+                {/* INPUT AREA */}
+                <InputTextDisplay
+                    text={textInput}
+                    setTextInput={setTextInput}
                     isRecording={isRecording}
                     isLoading={isLoading}
-                    startPlaying={startPlaying}
-                    onRecordClick={handleVoiceInput}
-                    onSendClick={submitQuery}
                     inputTextAreaRef={inputTextAreaRef}
-                    textInput={textInput}
-                    setTextInput={(value) => {
-                        setTextInput(value);
-                    }}
-                    setScannerMode={setScannerMode}
-                    onTakePhotoClick={setQrValue}
                 />
+
+                {/* BUTTON GROUP */}
+                <div className="w-full flex items-center gap-8 justify-between text-3xl text-gray-200">
+                    <CameraButton />
+                    <MainButton
+                        startPlaying={startPlaying}
+                        isRecording={isRecording}
+                        isLoading={isLoading}
+                        hasText={hasText}
+                        onRecordClick={handleVoiceInput}
+                        onSendClick={submitQuery}
+                    />
+                    <QRCodeButton
+                        isLoading={isLoading}
+                        setScannerMode={setScannerMode}
+                    />
+                </div>
             </main>
             <audio ref={audioRef} />
         </div>
