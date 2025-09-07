@@ -3,8 +3,10 @@ import SendButton from "./SendButton";
 import TakePhotoButton from "./TakePhotoButton";
 import type { Dispatch, Ref, SetStateAction } from "react";
 import InputTextDisplay from "./InputTextDisplay";
-import QRCodeIcon from "../assets/QRCode.svg";
+
 import SoundWave from "./SoundWave";
+import MainButton from "./MainButton";
+import QRCodeButton from "./QRCodeButton";
 
 export default function InputArea({
     isRecording,
@@ -31,31 +33,8 @@ export default function InputArea({
 }) {
     const hasText = textInput.trim().length > 0;
 
-    const getButton = () => {
-        if (startPlaying) {
-            return <SoundWave />;
-        } else if (isRecording || (!hasText && !isLoading)) {
-            return (
-                <RecordButton
-                    isRecording={isRecording}
-                    isLoading={isLoading}
-                    onRecordClick={onRecordClick}
-                />
-            );
-        } else {
-            return (
-                <SendButton
-                    isRecording={isRecording}
-                    isLoading={isLoading}
-                    hasText={hasText}
-                    onSendClick={onSendClick}
-                />
-            );
-        }
-    };
-
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
             <InputTextDisplay
                 text={textInput}
                 setTextInput={setTextInput}
@@ -63,19 +42,21 @@ export default function InputArea({
                 isLoading={isLoading}
                 inputTextAreaRef={inputTextAreaRef}
             />
-            <div className="flex items-center gap-4">
+            {/* BUTTON GROUP */}
+            <div className="flex items-center gap-4 justify-between text-4xl text-gray-200">
                 <TakePhotoButton onClick={onTakePhotoClick} />
-                <div className="flex items-center justify-center px-4 grow-1">
-                    {getButton()}
-                </div>
-                <div className="size-[7vh] rounded-full focus:outline-none transition-all duration-200 flex items-center hover:opacity-50">
-                    <button
-                        disabled={isLoading}
-                        onClick={() => setScannerMode(true)}
-                    >
-                        <img src={QRCodeIcon} className="w-14" />
-                    </button>
-                </div>
+                <MainButton
+                    startPlaying={startPlaying}
+                    isRecording={isRecording}
+                    isLoading={isLoading}
+                    hasText={hasText}
+                    onRecordClick={onRecordClick}
+                    onSendClick={onSendClick}
+                />
+                <QRCodeButton
+                    isLoading={isLoading}
+                    setScannerMode={setScannerMode}
+                />
             </div>
         </div>
     );

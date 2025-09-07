@@ -116,7 +116,7 @@ export default function App() {
                 <img src={Logo} className="max-w-[60vw]  px-4" />
                 <SettingsButton />
             </header>
-            <main className="mx-[2vw] flex-1 p-4 px-6 flex items-center justify-center relative overflow-hidden">
+            <main className="mx-[2vw] flex-1 p-4 px-6 flex flex-col items-center justify-center relative overflow-hidden">
                 {displayHistory ? (
                     <ChatHistoryDisplay messageHistory={messageHistory} />
                 ) : (
@@ -125,8 +125,7 @@ export default function App() {
                         displayedText={textOutput}
                     />
                 )}
-            </main>
-            <footer className="mx-[2vw] p-6">
+
                 <InputArea
                     isRecording={isRecording}
                     isLoading={isLoading}
@@ -141,7 +140,7 @@ export default function App() {
                     setScannerMode={setScannerMode}
                     onTakePhotoClick={setQrValue}
                 />
-            </footer>
+            </main>
             <audio ref={audioRef} />
         </div>
     );

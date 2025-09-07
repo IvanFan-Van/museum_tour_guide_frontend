@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import CameraIcon from "../assets/CameraIcon.svg";
+import { FaCamera } from "react-icons/fa";
 
 export default function CameraButton({
     onClick: setInputImage,
@@ -13,20 +13,18 @@ export default function CameraButton({
     };
 
     return (
-        <div className="size-[8vh] rounded-full focus:outline-none transition-all duration-200 flex items-center hover:opacity-50">
+        <div className="rounded-full focus:outline-none transition-all duration-200 flex items-center hover:opacity-50">
             <input
                 className="hidden"
                 type="file"
                 accept="image/*"
                 capture="environment"
                 onChange={handleCapture}
-                id="cameraInput"
+                id="camera-input"
             />
-            <button
-                onClick={() => document.getElementById("cameraInput")?.click()}
-            >
-                <img src={CameraIcon} className="size-[64px]" />
-            </button>
+            <label htmlFor="camera-input" className="cursor-pointer">
+                <FaCamera />
+            </label>
         </div>
     );
 }
