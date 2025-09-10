@@ -4,13 +4,14 @@ import ChatDisplay from "./components/ChatDisplay";
 import ChatHistoryButton from "./components/ChatHistoryButton";
 import ChatHistoryDisplay from "./components/ChatHistoryDisplay";
 import SettingsButton from "./components/SettingsButton";
-import Logo from "./assets/UMAG-logo.svg";
+import logoImage from "./assets/UMAG-logo.svg";
 import ScannerPage from "./components/ScannerPage";
 import useTTSApi from "./hooks/useTTSApi";
 import InputTextDisplay from "./components/InputTextDisplay";
 import MainButton from "./components/MainButton";
 import CameraButton from "./components/CameraButton";
 import QRCodeButton from "./components/QRCodeButton";
+import Logo from "./components/Logo";
 
 interface Message {
     sender: string;
@@ -112,15 +113,10 @@ export default function App() {
 
     // Chatbot Screen
     return (
-        <div className="px-8 py-6 flex flex-col h-screen bg-linear-to-t from-[#252733] to-[#493E51] font-sans">
-            <header className="text-white flex items-center justify-between relative text-5xl gap-4">
-                <ChatHistoryButton
-                    setIsOpen={setDisplayHistory}
-                />
-                <div className="w-auto">
-                    <img src={Logo} className="w-full" />
-                </div>
-
+        <div className="w-full h-screen flex flex-col px-8 py-6 bg-linear-to-t from-[#252733] to-[#493E51] font-sans">
+            <header className="text-white flex items-center justify-between relative text-5xl gap-4 h-[36px]">
+                <ChatHistoryButton setIsOpen={setDisplayHistory} />
+                <Logo src={logoImage} />
                 <SettingsButton />
             </header>
             <main className="flex-1 py-6 flex flex-col items-center justify-center relative overflow-hidden">
