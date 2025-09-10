@@ -28,8 +28,6 @@ textarea {
     }
 }
 
-@tailwind utilities;
-
 @keyframes wave {
     0%,
     100% {

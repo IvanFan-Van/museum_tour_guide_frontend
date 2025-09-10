@@ -116,7 +116,6 @@ export default function App() {
             <header className="text-white flex items-center justify-between relative text-5xl gap-4">
                 <ChatHistoryButton
                     setIsOpen={setDisplayHistory}
-                    isOpen={displayHistory}
                 />
                 <div className="w-auto">
                     <img src={Logo} className="w-full" />

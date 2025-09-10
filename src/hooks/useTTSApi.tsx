@@ -1,5 +1,4 @@
 import { MinPriorityQueue } from "@datastructures-js/priority-queue";
-import { Client } from "@langchain/langgraph-sdk";
 import {
     useState,
     useEffect,
@@ -16,19 +15,9 @@ import { WorkerPool } from "../workers/worker_pool"; // 导入我们的 WorkerPo
 import type { TTSWorkerTask, TTSWorkerResult } from "../workers/tts.worker";
 import { cleanMarkdownText, segment } from "../utils";
 
-const client = new Client({
-    apiUrl: "http://10.147.19.97:8000",
-});
-
-type Chunk = {
-    event: string;
-    data: {
-        generation: string;
-        messages: object[];
-    };
-};
-
 const NUM_WORKERS = 4;
+
+const ENDPOINT = "https://bcoz7e44cvus.share.zrok.io"
 
 export default function useTTSApi(
     query: string,
@@ -148,65 +137,51 @@ export default function useTTSApi(
         addMessageHistory("user", query);
 
         try {
-            const assistants = await client.assistants.search({
-                metadata: null,
-                offset: 0,
-                limit: 10,
-            });
-            const agent = assistants[0];
-            const thread = await client.threads.create();
-            const messages = [{ role: "human", content: query }];
+            const response = await fetch(`${ENDPOINT}/api/invoke`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ query }),
+            })
+            const newText = await response.text();
+            textRef.current = newText;
 
-            const streamResponse = client.runs.stream(
-                thread["thread_id"],
-                agent["assistant_id"],
-                {
-                    input: { messages },
-                }
-            );
+            // 添加聊天记录
+            addMessageHistory("bot", newText);
 
-            for await (const chunk of streamResponse as AsyncIterable<Chunk>) {
-                if (chunk["event"] == "values" && chunk["data"]["generation"]) {
-                    const newText = chunk["data"]["generation"];
-                    textRef.current = newText;
+            console.log(`LLM 的生成文本: ${newText}`);
+            const cleaned_text = cleanMarkdownText(newText);
+            console.log(`清理后的文本: ${cleaned_text}`);
 
-                    // 添加聊天记录
-                    addMessageHistory("bot", newText);
+            // 生产者逻辑
+            const sentences = segment(cleaned_text, 64);
+            console.log(`划分为 ${sentences.length} 个段落`);
+            for (const sentence of sentences) {
+                if (sentence.trim()) {
+                    const currentId = textChunkIdRef.current++;
 
-                    console.log(`LLM 的生成文本: ${newText}`);
-                    const cleaned_text = cleanMarkdownText(newText);
-                    console.log(`清理后的文本: ${cleaned_text}`);
-
-                    // 生产者逻辑
-                    const sentences = segment(cleaned_text, 64);
-                    console.log(`划分为 ${sentences.length} 个段落`);
-                    for (const sentence of sentences) {
-                        if (sentence.trim()) {
-                            const currentId = textChunkIdRef.current++;
-
-                            console.log(
-                                `添加 [任务 ${currentId}]: ${sentence}`
+                    console.log(
+                        `添加 [任务 ${currentId}]: ${sentence}`
+                    );
+                    // 提交任务到 WorkerPool
+                    workerPoolRef.current
+                        ?.run(
+                            { text: sentence, id: currentId },
+                            currentId
+                        )
+                        .then((result) => {
+                            // 任务完成，将结果放入结果队列
+                            resultQueueRef.current.enqueue(result);
+                            // 尝试播放
+                            consumeAudioQueue();
+                        })
+                        .catch((error) => {
+                            console.error(
+                                `Task ID ${currentId} failed:`,
+                                error
                             );
-                            // 提交任务到 WorkerPool
-                            workerPoolRef.current
-                                ?.run(
-                                    { text: sentence, id: currentId },
-                                    currentId
-                                )
-                                .then((result) => {
-                                    // 任务完成，将结果放入结果队列
-                                    resultQueueRef.current.enqueue(result);
-                                    // 尝试播放
-                                    consumeAudioQueue();
-                                })
-                                .catch((error) => {
-                                    console.error(
-                                        `Task ID ${currentId} failed:`,
-                                        error
-                                    );
-                                });
-                        }
-                    }
+                        });
                 }
             }
         } catch (error) {
