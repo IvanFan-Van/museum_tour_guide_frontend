@@ -17,7 +17,8 @@ import { cleanMarkdownText, segment } from "../utils";
 
 const NUM_WORKERS = 4;
 
-const ENDPOINT = "https://bcoz7e44cvus.share.zrok.io"
+const ENDPOINT =
+    import.meta.env["VITE_BACKEND_ENDPOINT"] || "http://localhost:8000";
 
 export default function useTTSApi(
     query: string,
@@ -137,13 +138,13 @@ export default function useTTSApi(
         addMessageHistory("user", query);
 
         try {
-            const response = await fetch(`${ENDPOINT}/api/invoke`, {
+            const response = await fetch(`${ENDPOINT}/invoke`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ query }),
-            })
+            });
             const newText = await response.text();
             textRef.current = newText;
 
@@ -161,15 +162,10 @@ export default function useTTSApi(
                 if (sentence.trim()) {
                     const currentId = textChunkIdRef.current++;
 
-                    console.log(
-                        `添加 [任务 ${currentId}]: ${sentence}`
-                    );
+                    console.log(`添加 [任务 ${currentId}]: ${sentence}`);
                     // 提交任务到 WorkerPool
                     workerPoolRef.current
-                        ?.run(
-                            { text: sentence, id: currentId },
-                            currentId
-                        )
+                        ?.run({ text: sentence, id: currentId }, currentId)
                         .then((result) => {
                             // 任务完成，将结果放入结果队列
                             resultQueueRef.current.enqueue(result);
