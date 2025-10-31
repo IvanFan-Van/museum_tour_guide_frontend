@@ -7,10 +7,12 @@ import { toast } from "sonner";
 import type { FileMetadata, Message } from "@/hooks/use-conversation-manager";
 
 const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
+    const newSrc = "http://localhost:8000/static/images/" + src;
+    console.log("Image src:", newSrc);
     return (
         <span className="mx-auto w-full sm:w-1/2 block sm:float-left clear-both pr-2 pt-2">
             <img
-                src={src}
+                src={newSrc}
                 alt={alt}
                 {...props}
                 className="object-contain w-full h-full"
