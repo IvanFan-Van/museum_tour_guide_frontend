@@ -24,17 +24,17 @@ export function useChat({
     const [audioQueue, setAudioQueue] = useState<(string | null)[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [query, setQuery] = useState<string>("");
-    const sourceRef = useRef<EventSource | null>(null);
+    const socketRef = useRef<WebSocket | null>(null);
     const currentAudioIdRef = useRef<number>(0);
 
     const cleanup = useCallback(() => {
-        if (sourceRef.current) {
-            sourceRef.current.close();
-            sourceRef.current = null;
+        if (socketRef.current) {
+            socketRef.current.close();
+            socketRef.current = null;
         }
         currentAudioIdRef.current = 0;
         setAudioQueue((prevQueue) => {
-            prevQueue.forEach((item) => item && URL.revokeObjectURL);
+            prevQueue.forEach((item) => item && URL.revokeObjectURL(item));
             return [];
         });
     }, []);
@@ -53,45 +53,60 @@ export function useChat({
 
         // 构建请求
         const effectiveQuery = queryParam || query;
-        const params = new URLSearchParams({
-            ...options,
-            query: effectiveQuery,
-        });
-        const url = new URL(`${api}?${params.toString()}`);
-        console.log(url.href);
+        const payload = {
+            "query": effectiveQuery,
+            "doc_id": options?.doc_id || null,
+        }
+        console.info("request params: \n", JSON.stringify(payload, null, 2));
 
         // 获取数据
-        const source = new EventSource(url.href);
-        sourceRef.current = source;
+        const socket = new WebSocket(api);
+        socketRef.current = socket;
 
-        source.addEventListener("message", (event) => {
-            const data = JSON.parse(event.data);
-            console.log(data);
-            if (data.type === "audio") {
-                const blob = base64ToBlob(data.chunk);
-                const audioUrl = URL.createObjectURL(blob);
+        socket.onopen = () => {
+            console.info("WebSocket connection established.");
+            socket.send(JSON.stringify(payload));
+        }
+
+        socket.onmessage = (event) => {
+            if (typeof event.data === "string") {
+                const message = JSON.parse(event.data);
+                const eventType = message.event;
+                const data = message.data;
+
+                switch (eventType) {
+                    case "connected":
+                        console.info("Connected to backend service.");
+                        break;
+                    case "message":
+                        setResponse((prev) => prev + data.chunk);
+                        break;
+                    case "done":
+                        console.log("Stream finished:", data);
+                        setAudioQueue((prev) => [...prev, null]); // 在队列末尾添加 null 以表示结束
+                        setIsLoading(false);
+                        socket.close();
+                        socketRef.current = null;
+                        break;
+                    case "error":
+                        console.error("An error occurred:", data);
+                        setAudioQueue((prev) => [...prev, null]); // 在队列末尾添加 null 以表示结束
+                        setIsLoading(false);
+                        socket.close();
+                        socketRef.current = null;
+                        break;
+                    default:
+                        console.warn("Unknown event type:", eventType);
+                }
+            } else if (event.data instanceof Blob) {
+                const audioBlob = event.data;
+                const audioUrl = URL.createObjectURL(audioBlob);
                 setAudioQueue((prevQueue) => [...prevQueue, audioUrl]);
-            } else if (data.type === "text") {
-                setResponse((prev) => prev + data.chunk);
+            } else {
+                console.warn("Received unknown data type from WebSocket.");
             }
-        });
 
-        source.addEventListener("done", (event) => {
-            const data = JSON.parse(event.data);
-            setAudioQueue((prev) => [...prev, null]); // 在队列末尾添加一个 null 以表示结束
-            console.log(data);
-            setIsLoading(false);
-            source.close();
-            sourceRef.current = null;
-        });
-
-        source.addEventListener("error", (err) => {
-            console.log(err);
-            setIsLoading(false);
-            setAudioQueue((prev) => [...prev, null]); // 在队列末尾添加一个 null 以表示结束
-            source.close();
-            sourceRef.current = null;
-        });
+        };
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -6,13 +6,13 @@ import {
     InputGroupTextarea,
 } from "./ui/input-group";
 import { Separator } from "@radix-ui/react-separator";
-import { useState, type ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 import { Spinner } from "./ui/spinner";
-import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { Scanner } from "@yudiel/react-qr-scanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
-import type { FileMetadata } from "@/App";
+import type { FileMetadata } from "@/hooks/use-conversation-manager";
 import { Card, CardContent } from "./ui/card";
 import useScan from "@/hooks/use-scan";
 

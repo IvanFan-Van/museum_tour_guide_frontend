@@ -100,7 +100,7 @@ export default function useConversationManager() {
     // 当 selectedConversationId 变化时, 更新上一条 conversation 的 preview
     useEffect(() => {
         const prevId = prevConvIdRef.current;
-        console.log("之前的 convID :", prevId);
+        // console.log("之前的 convID :", prevId);
 
         if (prevId && prevId !== selectedConversationId) {
             setConversations((prev) => {
@@ -122,7 +122,7 @@ export default function useConversationManager() {
         }
 
         prevConvIdRef.current = selectedConversationId;
-        console.log("更新完 preview 之后的 convID: ", selectedConversationId);
+        // console.log("更新完 preview 之后的 convID: ", selectedConversationId);
     }, [selectedConversationId]);
 
     // 当返回响应时, 更新 message 以及 chats
@@ -209,7 +209,11 @@ export default function useConversationManager() {
         };
         setConversations((prev) => [...prev, newConversation]);
         setSelectedConversationId(newConversation.id);
-        setQuery("");
+        if (title !== "New Conversation") {
+            setQuery(title);
+        } else {
+            setQuery("");
+        }
     };
 
     // 选择会话
@@ -243,8 +247,6 @@ export default function useConversationManager() {
             );
         });
 
-        console.log("点击 submit, 更新 chats");
-        console.log("更新后当前 chat 为: ", currentConversation.id);
         sendMessage();
     };
 
