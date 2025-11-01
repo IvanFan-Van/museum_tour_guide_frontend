@@ -1,18 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-function base64ToBlob(base64: string): Blob {
-    const base64String = base64.split(",")[1];
-    const binary = atob(base64String);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-
-    const mimeType = base64.match(/data:(.*);base64,/)?.[1] || "audio/wav";
-    const blob = new Blob([bytes], { type: mimeType });
-    return blob;
-}
-
 export function useChat({
     api,
     options,

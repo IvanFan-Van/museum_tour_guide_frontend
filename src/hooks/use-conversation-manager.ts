@@ -93,7 +93,7 @@ export default function useConversationManager() {
         setQuery,
         getNextAudio,
     } = useChat({
-        api: "http://localhost:8000/api/v1/invoke",
+        api: import.meta.env.VITE_API_URL,
         options: { doc_id: currentConversation?.files[0]?.docId || null },
     });
 
@@ -236,13 +236,13 @@ export default function useConversationManager() {
             return prev.map((conv) =>
                 conv.id === selectedConversationId
                     ? {
-                          ...conv,
-                          title:
-                              conv.title === "New Conversation"
-                                  ? query
-                                  : conv.title,
-                          messages: [...conv.messages, newMessage],
-                      }
+                        ...conv,
+                        title:
+                            conv.title === "New Conversation"
+                                ? query
+                                : conv.title,
+                        messages: [...conv.messages, newMessage],
+                    }
                     : conv
             );
         });
