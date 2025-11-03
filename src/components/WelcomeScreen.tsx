@@ -47,7 +47,7 @@ export default function WelcomeScreen({
                         >
                             <div className="flex items-start justify-between w-full">
                                 <div className="flex-1 pr-4">
-                                    <p className="text-wrap text-sm leading-relaxed text-muted-foreground">
+                                    <p className="text-wrap text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
                                         {suggestion.title}
                                     </p>
                                 </div>

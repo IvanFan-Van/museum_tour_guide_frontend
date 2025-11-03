@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+// import postcssPresetEnv from "postcss-preset-env";
+// import autoprefixer from "autoprefixer";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 import svgr from "vite-plugin-svgr";
@@ -12,4 +14,12 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
+    css: {
+        postcss: {
+            plugins: [
+                // autoprefixer()
+                // require("postcss-preset-env")
+            ]
+        }
+    }
 });
