@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import type { FileMetadata, Message } from "@/hooks/use-conversation-manager";
 
 const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
-    const newSrc = import.meta.env.VITE_STATIC_URL + src;
+    const newSrc = new URL(src || "", import.meta.env.VITE_STATIC_URL).toString();
     // console.log("Image src:", newSrc);
     return (
         <span className="mx-auto w-full sm:w-1/2 block sm:float-left clear-both pr-2 pt-2">
