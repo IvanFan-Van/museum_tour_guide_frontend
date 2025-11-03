@@ -22,40 +22,23 @@ export interface Conversation {
     files: FileMetadata[];
 }
 
-const testConversations: Conversation[] = [
-    {
-        id: "1",
-        title: "Tell me something about porcelain?",
-        preview: "Porcelain is a beautiful product comes from Shang Dynasty",
-        timestamp: new Date(),
-        messages: [
-            {
-                id: crypto.randomUUID(),
-                role: "user",
-                content: "Tell me something about porcelain?",
-            },
-            {
-                id: crypto.randomUUID(),
-                role: "ai",
-                content:
-                    "Porcelain is a beautiful product comes from Shang Dynasty",
-            },
-        ],
-        files: [],
-    },
-    {
-        id: "2",
-        title: "hello?",
-        preview: "Porcelain is a beautiful product comes from Shang Dynasty",
-        timestamp: new Date(),
-        messages: [],
-        files: [],
-    },
-];
+export interface ConversationManager {
+    conversations: Conversation[];
+    currentConversation: Conversation | null;
+    messages: Message[];
+    attachedFiles: FileMetadata[];
+    query: string;
+    isLoading: boolean;
+    audioRef: React.RefObject<HTMLAudioElement | null>;
+    handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    createConversation: (title?: string) => void;
+    selectConversation: (conversationId: string | null) => void;
+    handleSubmit: () => void;
+    processScannedFile: (data: FileMetadata) => void;
+}
 
-export default function useConversationManager() {
-    const [conversations, setConversations] =
-        useState<Conversation[]>(testConversations);
+export default function useConversationManager(): ConversationManager {
+    const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversationId, setSelectedConversationId] = useState<
         string | null
     >(null);
@@ -236,13 +219,13 @@ export default function useConversationManager() {
             return prev.map((conv) =>
                 conv.id === selectedConversationId
                     ? {
-                        ...conv,
-                        title:
-                            conv.title === "New Conversation"
-                                ? query
-                                : conv.title,
-                        messages: [...conv.messages, newMessage],
-                    }
+                          ...conv,
+                          title:
+                              conv.title === "New Conversation"
+                                  ? query
+                                  : conv.title,
+                          messages: [...conv.messages, newMessage],
+                      }
                     : conv
             );
         });

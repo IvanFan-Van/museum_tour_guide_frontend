@@ -5,12 +5,13 @@ import { Copy, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import type { FileMetadata, Message } from "@/hooks/use-conversation-manager";
+import { useConversation } from "@/context/conversation_context";
 
 const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
     const newSrc = new URL(src || "", import.meta.env.VITE_STATIC_URL).toString();
     // console.log("Image src:", newSrc);
     return (
-        <span className="mx-auto w-full sm:w-1/2 block sm:float-left clear-both pr-2 pt-2">
+        <span className="mx-auto w-1/4 lg:w-1/3 block sm:float-left clear-both pr-2 pt-2">
             <img
                 src={newSrc}
                 alt={alt}
@@ -21,23 +22,27 @@ const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
     );
 };
 
-export default function ChatInterface({
-    query,
-    messages,
-    files,
-    handleSubmit,
-    handleInputChange,
-    handleScan,
-    isLoading,
-}: {
-    query: string;
-    messages: Message[];
-    files: FileMetadata[];
-    handleSubmit: (queryParam?: string) => void;
-    handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    handleScan: (data: FileMetadata) => void;
-    isLoading: boolean;
-}) {
+const MarkdownParagraph: Components["p"] = ({ node, children, ...props }) => {
+    return (
+        <>
+            <p {...props} className="mb-2">
+                {children}
+            </p>
+        </>
+    );
+};
+
+export default function ChatInterface() {
+    const {
+        query,
+        attachedFiles,
+        messages,
+        isLoading,
+        handleSubmit,
+        handleInputChange,
+        processScannedFile,
+    } = useConversation();
+
     const handleClickCopy = async (content: string) => {
         try {
             await navigator.clipboard.writeText(content);
@@ -67,6 +72,7 @@ export default function ChatInterface({
                                         <Markdown
                                             components={{
                                                 img: MarkdownImage,
+                                                p: MarkdownParagraph,
                                             }}
                                         >
                                             {message.content}
@@ -114,10 +120,10 @@ export default function ChatInterface({
             </div>
             <InputArea
                 query={query}
-                fileMetadatas={files}
+                fileMetadatas={attachedFiles}
                 handleSubmit={handleSubmit}
                 handleInputChange={handleInputChange}
-                handleScan={handleScan}
+                handleScan={processScannedFile}
                 isLoading={isLoading}
             />
         </main>

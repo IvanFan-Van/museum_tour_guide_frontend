@@ -3,59 +3,35 @@ import ChatHistorySidebar from "./components/ChatHistorySidebar";
 import Header from "./components/Header";
 import WelcomeScreen from "./components/WelcomeScreen";
 import ChatInterface from "./components/ChatInterface";
-import useConversationManager from "./hooks/use-conversation-manager";
+import {
+    ConversationProvider,
+    useConversation,
+} from "./context/conversation_context";
 
-function App() {
-    const {
-        conversations,
-        currentConversation,
-        messages,
-        attachedFiles,
-        query,
-        isLoading,
-        audioRef,
-        handleInputChange,
-        createConversation,
-        selectConversation,
-        handleSubmit,
-        processScannedFile,
-    } = useConversationManager();
-
+function AppContent() {
+    const { currentConversation, audioRef } = useConversation();
     return (
         <>
             {/* 侧边栏 */}
-            <ChatHistorySidebar
-                convs={conversations}
-                selectedChatId={currentConversation?.id || null}
-                onSelectChat={selectConversation}
-                onNewChat={() => createConversation()}
-            />
+            <ChatHistorySidebar />
             {/* 主视图区域 */}
             <div className="w-full min-h-screen flex flex-col">
                 {/* 主视图区头部栏 */}
-                <Header handleLogoClick={() => selectConversation(null)} />
+                <Header />
 
                 {/* 如果没有任何 CHATID 选择, 则展示 Welcome page, 否则展示 ChatInterface */}
-                {!currentConversation ? (
-                    <WelcomeScreen
-                        handleSuggestionClick={(suggestion: string) =>
-                            createConversation(suggestion)
-                        }
-                    />
-                ) : (
-                    <ChatInterface
-                        query={query}
-                        files={attachedFiles}
-                        messages={messages}
-                        handleSubmit={handleSubmit}
-                        handleInputChange={handleInputChange}
-                        isLoading={isLoading}
-                        handleScan={processScannedFile}
-                    />
-                )}
+                {!currentConversation ? <WelcomeScreen /> : <ChatInterface />}
             </div>
             <audio ref={audioRef} />
         </>
+    );
+}
+
+function App() {
+    return (
+        <ConversationProvider>
+            <AppContent />
+        </ConversationProvider>
     );
 }
 

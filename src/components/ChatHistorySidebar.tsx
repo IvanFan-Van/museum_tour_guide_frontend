@@ -14,24 +14,21 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { Conversation } from "@/hooks/use-conversation-manager";
+import { useConversation } from "@/context/conversation_context";
 
-export default function ChatHistorySidebar({
-    convs,
-    selectedChatId,
-    onNewChat,
-    onSelectChat,
-}: {
-    convs: Conversation[];
-    selectedChatId: string | null;
-    onNewChat: () => void;
-    onSelectChat: (chatId: string) => void;
-}) {
+export default function ChatHistorySidebar() {
+    const {
+        currentConversation,
+        conversations,
+        selectConversation,
+        createConversation,
+    } = useConversation();
+
+    const selectedChatId = currentConversation?.id || null;
     const [searchQuery, setSearchQuery] = useState("");
-
     const filteredConvs = useMemo(
         () =>
-            convs.filter((conv) => {
+            conversations.filter((conv) => {
                 return (
                     conv.title
                         .toLowerCase()
@@ -41,14 +38,17 @@ export default function ChatHistorySidebar({
                         .includes(searchQuery.toLowerCase())
                 );
             }),
-        [searchQuery, convs]
+        [searchQuery, conversations]
     );
 
     return (
         <Sidebar className="border-r">
             <SidebarHeader className="px-4">
                 <div className="border-b pb-4">
-                    <Button className="w-full" onClick={onNewChat}>
+                    <Button
+                        className="w-full"
+                        onClick={() => createConversation()}
+                    >
                         <Plus />
                         New Chat
                     </Button>
@@ -80,7 +80,9 @@ export default function ChatHistorySidebar({
                                 return (
                                     <SidebarMenuItem
                                         key={conv.id}
-                                        onClick={() => onSelectChat(conv.id)}
+                                        onClick={() =>
+                                            selectConversation(conv.id)
+                                        }
                                     >
                                         <Button
                                             variant="ghost"
