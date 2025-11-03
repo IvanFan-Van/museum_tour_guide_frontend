@@ -33,15 +33,7 @@ const MarkdownParagraph: Components["p"] = ({ node, children, ...props }) => {
 };
 
 export default function ChatInterface() {
-    const {
-        query,
-        attachedFiles,
-        messages,
-        isLoading,
-        handleSubmit,
-        handleInputChange,
-        processScannedFile,
-    } = useConversation();
+    const { messages, isLoading } = useConversation();
 
     const handleClickCopy = async (content: string) => {
         try {
@@ -118,14 +110,7 @@ export default function ChatInterface() {
                 ))}
                 <div></div>
             </div>
-            <InputArea
-                query={query}
-                fileMetadatas={attachedFiles}
-                handleSubmit={handleSubmit}
-                handleInputChange={handleInputChange}
-                handleScan={processScannedFile}
-                isLoading={isLoading}
-            />
+            <InputArea />
         </main>
     );
 }

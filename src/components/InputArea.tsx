@@ -6,39 +6,35 @@ import {
     InputGroupTextarea,
 } from "./ui/input-group";
 import { Separator } from "@radix-ui/react-separator";
-import { type ChangeEvent } from "react";
 import { Spinner } from "./ui/spinner";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
-import type { FileMetadata } from "@/hooks/use-conversation-manager";
 import { Card, CardContent } from "./ui/card";
 import useScan from "@/hooks/use-scan";
+import { useConversation } from "@/context/conversation_context";
 
-export default function InputArea({
-    query,
-    handleSubmit,
-    handleInputChange,
-    handleScan: onSuccess,
-    fileMetadatas,
-    isLoading,
-}: {
-    query: string;
-    handleSubmit: () => void;
-    handleInputChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-    handleScan: (data: FileMetadata) => void;
-    fileMetadatas: FileMetadata[];
-    isLoading: boolean;
-}) {
-    const { isOpen, toggleOpen, close, handleScan } = useScan({ onSuccess });
+export default function InputArea() {
+    const {
+        query,
+        attachedFiles,
+        isLoading,
+        handleSubmit,
+        handleInputChange,
+        processScannedFile,
+    } = useConversation();
+
+    const { isOpen, toggleOpen, close, handleScan } = useScan({
+        onSuccess: processScannedFile,
+    });
 
     return (
         <div className="sticky bottom-4">
             {/* 展示文件小图标 */}
-            {fileMetadatas && (
+            {attachedFiles && (
                 <div className="mb-2">
-                    {fileMetadatas.map((metadata) => {
+                    {attachedFiles.map((metadata) => {
                         return (
                             <Card
                                 className="inline-block py-2 px-2"
