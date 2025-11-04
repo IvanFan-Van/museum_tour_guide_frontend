@@ -13,7 +13,7 @@ const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
     ).toString();
     // console.log("Image src:", newSrc);
     return (
-        <span className="mx-auto w-1/4 lg:w-1/3 block sm:float-left clear-both pr-2 pt-2">
+        <span className="mx-auto w-full sm:w-1/4 block sm:float-left clear-both pr-2 pt-2">
             <img
                 src={newSrc}
                 alt={alt}
