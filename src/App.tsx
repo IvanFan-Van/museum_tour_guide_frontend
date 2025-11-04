@@ -18,7 +18,6 @@ function AppContent() {
             <div className="w-full min-h-screen flex flex-col">
                 {/* 主视图区头部栏 */}
                 <Header />
-
                 {/* 如果没有任何 CHATID 选择, 则展示 Welcome page, 否则展示 ChatInterface */}
                 {!currentConversation ? <WelcomeScreen /> : <ChatInterface />}
             </div>

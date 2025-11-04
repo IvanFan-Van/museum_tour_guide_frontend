@@ -4,11 +4,13 @@ import InputArea from "./InputArea";
 import { Copy, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import type { FileMetadata, Message } from "@/hooks/use-conversation-manager";
 import { useConversation } from "@/context/conversation_context";
 
 const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
-    const newSrc = new URL(src || "", import.meta.env.VITE_STATIC_URL).toString();
+    const newSrc = new URL(
+        src || "",
+        import.meta.env.VITE_STATIC_URL
+    ).toString();
     // console.log("Image src:", newSrc);
     return (
         <span className="mx-auto w-1/4 lg:w-1/3 block sm:float-left clear-both pr-2 pt-2">
