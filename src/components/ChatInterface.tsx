@@ -6,7 +6,12 @@ import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { useConversation } from "@/hooks/use-conversation";
 
-const MarkdownImage: Components["img"] = ({ node: _node, src, alt, ...props }) => {
+const MarkdownImage: Components["img"] = ({
+    node: _node,
+    src,
+    alt,
+    ...props
+}) => {
     const newSrc = new URL(
         src || "",
         import.meta.env.VITE_STATIC_URL
@@ -24,7 +29,11 @@ const MarkdownImage: Components["img"] = ({ node: _node, src, alt, ...props }) =
     );
 };
 
-const MarkdownParagraph: Components["p"] = ({ node: _node, children, ...props }) => {
+const MarkdownParagraph: Components["p"] = ({
+    node: _node,
+    children,
+    ...props
+}) => {
     return (
         <>
             <p {...props} className="mb-2">
@@ -54,18 +63,24 @@ export default function ChatInterface() {
         <main className="flex-1 flex flex-col px-4 md:px-6 pb-4">
             <div className="flex flex-col gap-4 mx-auto w-full flex-1 mt-4 mb-12">
                 {messages.map((message) => (
-                    <div key={message.id}>
+                    <>
                         {message.role == "user" ? (
-                            <div className="flex justify-end max-w-4xl">
-                                <div className="bg-muted rounded-lg p-4 text-right">
+                            <div
+                                key={message.id}
+                                className="flex self-end max-w-4xl"
+                            >
+                                <div className="bg-muted rounded-lg p-4">
                                     <p className="text-muted-foreground">
                                         {message.content}
                                     </p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex justify-start max-w-4xl">
-                                <div className="flex flex-col bg-muted rounded-lg p-4 text-left border">
+                            <div
+                                key={message.id}
+                                className="flex justify-start max-w-4xl"
+                            >
+                                <div className="flex flex-col bg-muted rounded-lg p-4 border">
                                     <div className="mb-4 text-muted-foreground">
                                         <Markdown
                                             components={{
@@ -94,9 +109,8 @@ export default function ChatInterface() {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </>
                 ))}
-                <div></div>
             </div>
             <InputArea />
         </main>
