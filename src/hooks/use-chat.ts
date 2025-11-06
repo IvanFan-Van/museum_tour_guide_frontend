@@ -41,9 +41,9 @@ export function useChat({
         // 构建请求
         const effectiveQuery = queryParam || query;
         const payload = {
-            "query": effectiveQuery,
-            "doc_id": options?.doc_id || null,
-        }
+            query: effectiveQuery,
+            doc_id: options?.doc_id || null,
+        };
         console.info("request params: \n", JSON.stringify(payload, null, 2));
 
         // 获取数据
@@ -53,7 +53,7 @@ export function useChat({
         socket.onopen = () => {
             console.info("WebSocket connection established.");
             socket.send(JSON.stringify(payload));
-        }
+        };
 
         socket.onmessage = (event) => {
             if (typeof event.data === "string") {
@@ -67,6 +67,7 @@ export function useChat({
                         break;
                     case "message":
                         setResponse((prev) => prev + data.chunk);
+                        setIsLoading(false);
                         break;
                     case "done":
                         console.log("Stream finished:", data);
@@ -92,7 +93,6 @@ export function useChat({
             } else {
                 console.warn("Received unknown data type from WebSocket.");
             }
-
         };
     };
 

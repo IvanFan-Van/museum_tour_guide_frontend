@@ -1,4 +1,12 @@
-import { ArrowUpIcon, Camera, FileText, Scan } from "lucide-react";
+import {
+    ArrowUpIcon,
+    AudioLines,
+    Camera,
+    FileText,
+    Pause,
+    Play,
+    Scan,
+} from "lucide-react";
 import {
     InputGroup,
     InputGroupAddon,
@@ -19,7 +27,9 @@ export default function InputArea() {
     const {
         query,
         attachedFiles,
+        isPlaying,
         isLoading,
+        toggleAudioPlay,
         handleSubmit,
         handleInputChange,
         processScannedFile,
@@ -59,6 +69,7 @@ export default function InputArea() {
                     value={query}
                 />
                 <InputGroupAddon align="block-end">
+                    {/* 拍照按钮 */}
                     <InputGroupButton
                         variant="outline"
                         className="rounded-full"
@@ -108,6 +119,7 @@ export default function InputArea() {
                     </Dialog>
 
                     <Separator orientation="vertical" className="!h-4" />
+                    {/* 发送按钮 */}
                     <InputGroupButton
                         variant="default"
                         className="rounded-full ml-auto"
@@ -116,6 +128,16 @@ export default function InputArea() {
                         disabled={isLoading}
                     >
                         {isLoading ? <Spinner /> : <ArrowUpIcon />}
+                    </InputGroupButton>
+
+                    {/* 播放按钮 */}
+                    <InputGroupButton
+                        variant="default"
+                        className="rounded-full"
+                        size="icon-sm"
+                        onClick={toggleAudioPlay}
+                    >
+                        {isPlaying ? <Pause /> : <AudioLines />}
                     </InputGroupButton>
                 </InputGroupAddon>
             </InputGroup>
