@@ -74,36 +74,17 @@ export default function ChatInterface() {
                                     </div>
 
                                     {!isLoading && (
-                                        <div className="flex items-center justify-between gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-gray-200"
-                                                onClick={() =>
-                                                    handleClickCopy(
-                                                        message.content
-                                                    )
-                                                }
-                                            >
-                                                <Copy className="h-4 w-4" />
-                                            </Button>
-
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-8 w-8 p-0 hover:bg-gray-200"
-                                                >
-                                                    <ThumbsUp className="w-4 h-4" />
-                                                </Button>
-
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-8 w-8 p-0 hover:bg-gray-200"
-                                                >
-                                                    <ThumbsDown className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
+                                        // 复制按钮
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 hover:bg-gray-200"
+                                            onClick={() =>
+                                                handleClickCopy(message.content)
+                                            }
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
                                     )}
                                 </div>
                             </div>
