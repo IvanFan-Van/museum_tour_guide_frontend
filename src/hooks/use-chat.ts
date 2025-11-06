@@ -5,7 +5,7 @@ export function useChat({
     options,
 }: {
     api: string;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 }) {
     const [response, setResponse] = useState<string>("");
     const [audioQueue, setAudioQueue] = useState<(string | null)[]>([]);
@@ -28,7 +28,7 @@ export function useChat({
 
     useEffect(() => {
         return () => cleanup();
-    }, []);
+    }, [cleanup]);
 
     const sendMessage = (queryParam?: string) => {
         if (isLoading) return;

@@ -1,12 +1,12 @@
 import Markdown from "react-markdown";
 import { type Components } from "react-markdown";
 import InputArea from "./InputArea";
-import { Copy, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Copy } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { useConversation } from "@/context/conversation_context";
+import { useConversation } from "@/hooks/use-conversation";
 
-const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
+const MarkdownImage: Components["img"] = ({ node: _node, src, alt, ...props }) => {
     const newSrc = new URL(
         src || "",
         import.meta.env.VITE_STATIC_URL
@@ -24,7 +24,7 @@ const MarkdownImage: Components["img"] = ({ node, src, alt, ...props }) => {
     );
 };
 
-const MarkdownParagraph: Components["p"] = ({ node, children, ...props }) => {
+const MarkdownParagraph: Components["p"] = ({ node: _node, children, ...props }) => {
     return (
         <>
             <p {...props} className="mb-2">
@@ -34,7 +34,7 @@ const MarkdownParagraph: Components["p"] = ({ node, children, ...props }) => {
     );
 };
 
-const MarkdownHorizontalRule: Components["hr"] = ({ node, ...props }) => {
+const MarkdownHorizontalRule: Components["hr"] = () => {
     return <></>;
 };
 

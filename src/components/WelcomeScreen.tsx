@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "./ui/button";
-import { useConversation } from "@/context/conversation_context";
+import { useConversation } from "@/hooks/use-conversation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const suggestions = [

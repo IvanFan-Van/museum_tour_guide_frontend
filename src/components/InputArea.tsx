@@ -4,7 +4,6 @@ import {
     Camera,
     FileText,
     Pause,
-    Play,
     Scan,
 } from "lucide-react";
 import {
@@ -21,7 +20,7 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import useScan from "@/hooks/use-scan";
-import { useConversation } from "@/context/conversation_context";
+import { useConversation } from "@/hooks/use-conversation";
 
 export default function InputArea() {
     const {

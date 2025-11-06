@@ -1,22 +1,9 @@
 import useConversationManager, {
     type ConversationManager,
 } from "@/hooks/use-conversation-manager";
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 
-const ConversationContext = createContext<ConversationManager | null>(null);
-
-export function useConversation() {
-    const context = useContext(ConversationContext);
-
-    if (!context) {
-        throw new Error(
-            "ConversationProvider must be used within a ConversationContext"
-        );
-    }
-
-    return context;
-}
-
+export const ConversationContext = createContext<ConversationManager | null>(null);
 export function ConversationProvider({
     children,
 }: {
