@@ -67,7 +67,6 @@ export function useChat({
                         break;
                     case "message":
                         setResponse((prev) => prev + data.chunk);
-                        setIsLoading(false);
                         break;
                     case "done":
                         console.log("Stream finished:", data);
