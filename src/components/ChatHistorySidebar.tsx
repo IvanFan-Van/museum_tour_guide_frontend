@@ -14,7 +14,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useConversation } from "@/context/conversation_context";
+import { useConversation } from "@/hooks/use-conversation";
 
 export default function ChatHistorySidebar() {
     const {
@@ -89,7 +89,7 @@ export default function ChatHistorySidebar() {
                                             className={cn(
                                                 "h-auto w-full justify-start p-3 text-left hover:bg-primary/10",
                                                 selectedChatId === conv.id &&
-                                                    "bg-primary/10"
+                                                "bg-primary/10"
                                             )}
                                         >
                                             <MessageCircle className="h-4 w-4" />

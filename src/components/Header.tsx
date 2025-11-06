@@ -14,7 +14,7 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import useTheme from "@/hooks/use-theme";
-import { useConversation } from "@/context/conversation_context";
+import { useConversation } from "@/hooks/use-conversation";
 
 export default function Header() {
     const { selectConversation } = useConversation();
