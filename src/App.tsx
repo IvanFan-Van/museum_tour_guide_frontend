@@ -3,10 +3,8 @@ import ChatHistorySidebar from "./components/ChatHistorySidebar";
 import Header from "./components/Header";
 import WelcomeScreen from "./components/WelcomeScreen";
 import ChatInterface from "./components/ChatInterface";
-import {
-    ConversationProvider,
-    useConversation,
-} from "./context/conversation_context";
+import { ConversationProvider } from "./context/conversation_context";
+import { useConversation } from "./hooks/use-conversation";
 
 function AppContent() {
     const { currentConversation, audioRef } = useConversation();
