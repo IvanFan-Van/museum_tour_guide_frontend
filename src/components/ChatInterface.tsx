@@ -34,6 +34,10 @@ const MarkdownParagraph: Components["p"] = ({ node, children, ...props }) => {
     );
 };
 
+const MarkdownHorizontalRule: Components["hr"] = ({ node, ...props }) => {
+    return <></>;
+};
+
 export default function ChatInterface() {
     const { messages, isLoading } = useConversation();
 
@@ -67,6 +71,7 @@ export default function ChatInterface() {
                                             components={{
                                                 img: MarkdownImage,
                                                 p: MarkdownParagraph,
+                                                hr: MarkdownHorizontalRule,
                                             }}
                                         >
                                             {message.content}
