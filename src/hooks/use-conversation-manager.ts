@@ -234,6 +234,9 @@ export default function useConversationManager(): ConversationManager {
         });
 
         sendMessage();
+
+        // 重置 pause 状态
+        setIsPaused(false);
     };
 
     // 处理扫描事件, 更新 optionsRef 以及 chats 中的 metadata
