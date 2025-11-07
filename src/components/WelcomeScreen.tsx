@@ -1,7 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { useConversation } from "@/hooks/use-conversation";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const suggestions = [
     {
@@ -20,7 +19,6 @@ const suggestions = [
 
 export default function WelcomeScreen() {
     const { createConversation } = useConversation();
-    const isMobile = useIsMobile();
 
     return (
         <div className="mx-auto max-w-4xl p-8 flex flex-col items-center justify-ceneter flex-1">
@@ -54,20 +52,20 @@ export default function WelcomeScreen() {
                             </div>
                         </Button>
                     ))}
-                    {isMobile && (
+                    <div className="col-span-full flex justify-center">
                         <Button
                             variant="outline"
                             className="group h-auto border-gray-200 p-6 text-left hover:bg-gray-50"
                             onClick={() => createConversation()}
                         >
                             <div className="flex items-center justify-between w-full">
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-muted-foreground mr-2">
                                     Have your own question? Tap to ask!
                                 </p>
                                 <ArrowUpRight className="text-muted-foreground group-hover:text-primary" />
                             </div>
                         </Button>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
