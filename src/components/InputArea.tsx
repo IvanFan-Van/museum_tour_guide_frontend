@@ -1,4 +1,11 @@
-import { ArrowUpIcon, Camera, FileText, Scan } from "lucide-react";
+import {
+    ArrowUpIcon,
+    AudioLines,
+    Camera,
+    FileText,
+    Pause,
+    Scan,
+} from "lucide-react";
 import {
     InputGroup,
     InputGroupAddon,
@@ -6,39 +13,37 @@ import {
     InputGroupTextarea,
 } from "./ui/input-group";
 import { Separator } from "@radix-ui/react-separator";
-import { type ChangeEvent } from "react";
 import { Spinner } from "./ui/spinner";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
-import type { FileMetadata } from "@/hooks/use-conversation-manager";
 import { Card, CardContent } from "./ui/card";
 import useScan from "@/hooks/use-scan";
+import { useConversation } from "@/hooks/use-conversation";
 
-export default function InputArea({
-    query,
-    handleSubmit,
-    handleInputChange,
-    handleScan: onSuccess,
-    fileMetadatas,
-    isLoading,
-}: {
-    query: string;
-    handleSubmit: () => void;
-    handleInputChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-    handleScan: (data: FileMetadata) => void;
-    fileMetadatas: FileMetadata[];
-    isLoading: boolean;
-}) {
-    const { isOpen, toggleOpen, close, handleScan } = useScan({ onSuccess });
+export default function InputArea() {
+    const {
+        query,
+        attachedFiles,
+        isPlaying,
+        isLoading,
+        toggleAudioPlay,
+        handleSubmit,
+        handleInputChange,
+        processScannedFile,
+    } = useConversation();
+
+    const { isOpen, toggleOpen, close, handleScan } = useScan({
+        onSuccess: processScannedFile,
+    });
 
     return (
         <div className="sticky bottom-4">
             {/* 展示文件小图标 */}
-            {fileMetadatas && (
+            {attachedFiles && (
                 <div className="mb-2">
-                    {fileMetadatas.map((metadata) => {
+                    {attachedFiles.map((metadata) => {
                         return (
                             <Card
                                 className="inline-block py-2 px-2"
@@ -63,6 +68,7 @@ export default function InputArea({
                     value={query}
                 />
                 <InputGroupAddon align="block-end">
+                    {/* 拍照按钮 */}
                     <InputGroupButton
                         variant="outline"
                         className="rounded-full"
@@ -112,6 +118,7 @@ export default function InputArea({
                     </Dialog>
 
                     <Separator orientation="vertical" className="!h-4" />
+                    {/* 发送按钮 */}
                     <InputGroupButton
                         variant="default"
                         className="rounded-full ml-auto"
@@ -120,6 +127,16 @@ export default function InputArea({
                         disabled={isLoading}
                     >
                         {isLoading ? <Spinner /> : <ArrowUpIcon />}
+                    </InputGroupButton>
+
+                    {/* 播放按钮 */}
+                    <InputGroupButton
+                        variant="default"
+                        className="rounded-full"
+                        size="icon-sm"
+                        onClick={toggleAudioPlay}
+                    >
+                        {isPlaying ? <Pause /> : <AudioLines />}
                     </InputGroupButton>
                 </InputGroupAddon>
             </InputGroup>

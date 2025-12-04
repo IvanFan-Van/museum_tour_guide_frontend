@@ -22,46 +22,32 @@ export interface Conversation {
     files: FileMetadata[];
 }
 
-const testConversations: Conversation[] = [
-    {
-        id: "1",
-        title: "Tell me something about porcelain?",
-        preview: "Porcelain is a beautiful product comes from Shang Dynasty",
-        timestamp: new Date(),
-        messages: [
-            {
-                id: crypto.randomUUID(),
-                role: "user",
-                content: "Tell me something about porcelain?",
-            },
-            {
-                id: crypto.randomUUID(),
-                role: "ai",
-                content:
-                    "Porcelain is a beautiful product comes from Shang Dynasty",
-            },
-        ],
-        files: [],
-    },
-    {
-        id: "2",
-        title: "hello?",
-        preview: "Porcelain is a beautiful product comes from Shang Dynasty",
-        timestamp: new Date(),
-        messages: [],
-        files: [],
-    },
-];
+export interface ConversationManager {
+    conversations: Conversation[];
+    currentConversation: Conversation | null;
+    messages: Message[];
+    attachedFiles: FileMetadata[];
+    query: string;
+    isPlaying: boolean; // 音频播放状态
+    isLoading: boolean;
+    audioRef: React.RefObject<HTMLAudioElement | null>;
+    handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    createConversation: (title?: string) => void;
+    selectConversation: (conversationId: string | null) => void;
+    handleSubmit: () => void;
+    processScannedFile: (data: FileMetadata) => void;
+    toggleAudioPlay: () => void; // 切换音频播放状态
+}
 
-export default function useConversationManager() {
-    const [conversations, setConversations] =
-        useState<Conversation[]>(testConversations);
+export default function useConversationManager(): ConversationManager {
+    const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversationId, setSelectedConversationId] = useState<
         string | null
     >(null);
 
     const audioRef = useRef<HTMLAudioElement | null>(null); // 用于播放音频的元素引用
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false); // 音频播放状态
+    const [isPaused, setIsPaused] = useState<boolean>(false); // 音频是否暂停
 
     // 上一个会话 ID
     const prevConvIdRef = useRef<string | null>(null);
@@ -193,7 +179,7 @@ export default function useConversationManager() {
                 };
             }
         };
-        if (audioRef.current && audioRef.current.paused) {
+        if (audioRef.current && !isPlaying && !isPaused) {
             playNextAudio();
         }
     }, [audioQueue, getNextAudio, isPlaying]);
@@ -236,18 +222,21 @@ export default function useConversationManager() {
             return prev.map((conv) =>
                 conv.id === selectedConversationId
                     ? {
-                        ...conv,
-                        title:
-                            conv.title === "New Conversation"
-                                ? query
-                                : conv.title,
-                        messages: [...conv.messages, newMessage],
-                    }
+                          ...conv,
+                          title:
+                              conv.title === "New Conversation"
+                                  ? query
+                                  : conv.title,
+                          messages: [...conv.messages, newMessage],
+                      }
                     : conv
             );
         });
 
         sendMessage();
+
+        // 重置 pause 状态
+        setIsPaused(false);
     };
 
     // 处理扫描事件, 更新 optionsRef 以及 chats 中的 metadata
@@ -269,12 +258,29 @@ export default function useConversationManager() {
         console.log("Scan result ", file);
     };
 
+    const toggleAudioPlay = () => {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+                setIsPlaying(false);
+                setIsPaused(true);
+            } else {
+                audioRef.current
+                    .play()
+                    .catch((e) => console.error("Audio play error:", e));
+                setIsPlaying(true);
+                setIsPaused(false);
+            }
+        }
+    };
+
     return {
         conversations,
         currentConversation,
         messages,
         attachedFiles,
         query,
+        isPlaying,
         isLoading,
         audioRef,
         handleInputChange,
@@ -282,5 +288,6 @@ export default function useConversationManager() {
         selectConversation,
         handleSubmit,
         processScannedFile,
+        toggleAudioPlay,
     };
 }

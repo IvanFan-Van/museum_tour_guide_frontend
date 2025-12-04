@@ -14,12 +14,10 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import useTheme from "@/hooks/use-theme";
+import { useConversation } from "@/hooks/use-conversation";
 
-export default function Header({
-    handleLogoClick,
-}: {
-    handleLogoClick: () => void;
-}) {
+export default function Header() {
+    const { selectConversation } = useConversation();
     const { toggleSidebar } = useSidebar();
     const { isDark, setIsDark } = useTheme();
 
@@ -37,7 +35,7 @@ export default function Header({
             <Logo
                 aria-label="UMAG Logo"
                 className="h-8 sm:h-10 w-auto fill-black dark:fill-white"
-                onClick={handleLogoClick}
+                onClick={() => selectConversation(null)}
             />
 
             <DropdownMenu>

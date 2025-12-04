@@ -1,0 +1,2 @@
+pnpm lint || true
+pnpm exec tsc -b || true

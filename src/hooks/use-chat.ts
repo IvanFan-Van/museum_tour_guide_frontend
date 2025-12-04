@@ -5,7 +5,7 @@ export function useChat({
     options,
 }: {
     api: string;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 }) {
     const [response, setResponse] = useState<string>("");
     const [audioQueue, setAudioQueue] = useState<(string | null)[]>([]);
@@ -28,7 +28,7 @@ export function useChat({
 
     useEffect(() => {
         return () => cleanup();
-    }, []);
+    }, [cleanup]);
 
     const sendMessage = (queryParam?: string) => {
         if (isLoading) return;
@@ -41,9 +41,9 @@ export function useChat({
         // 构建请求
         const effectiveQuery = queryParam || query;
         const payload = {
-            "query": effectiveQuery,
-            "doc_id": options?.doc_id || null,
-        }
+            query: effectiveQuery,
+            doc_id: options?.doc_id || null,
+        };
         console.info("request params: \n", JSON.stringify(payload, null, 2));
 
         // 获取数据
@@ -53,7 +53,7 @@ export function useChat({
         socket.onopen = () => {
             console.info("WebSocket connection established.");
             socket.send(JSON.stringify(payload));
-        }
+        };
 
         socket.onmessage = (event) => {
             if (typeof event.data === "string") {
@@ -92,7 +92,6 @@ export function useChat({
             } else {
                 console.warn("Received unknown data type from WebSocket.");
             }
-
         };
     };
 
