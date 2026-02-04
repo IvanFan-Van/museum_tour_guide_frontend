@@ -1,4 +1,3 @@
-import "./App.css";
 import ChatHistorySidebar from "./components/ChatHistorySidebar";
 import Header from "./components/Header";
 import WelcomeScreen from "./components/WelcomeScreen";
