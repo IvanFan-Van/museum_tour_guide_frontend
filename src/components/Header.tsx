@@ -14,12 +14,14 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import useTheme from "@/hooks/use-theme";
+import useLanguage from "@/hooks/use-language";
 import { useConversation } from "@/hooks/use-conversation";
 
 export default function Header() {
     const { selectConversation } = useConversation();
     const { toggleSidebar } = useSidebar();
     const { isDark, setIsDark } = useTheme();
+    const { language, toggleLanguage } = useLanguage();
 
     return (
         <header className="w-full flex items-center justify-between space-x-4 px-4 md:px-6 py-2 border-b pb-4 sticky top-0 bg-background">
@@ -53,6 +55,18 @@ export default function Header() {
                                 onCheckedChange={setIsDark}
                             />
                             <Label htmlFor="dark-mode">Dark Mode</Label>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Switch
+                                id="language"
+                                checked={language === "zh"}
+                                onCheckedChange={(checked) =>
+                                    toggleLanguage(checked ? "zh" : "en")
+                                }
+                            />
+                            <Label htmlFor="language">
+                                Language ({language.toUpperCase()})
+                            </Label>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                 </DropdownMenuContent>

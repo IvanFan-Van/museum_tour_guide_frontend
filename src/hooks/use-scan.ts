@@ -1,4 +1,4 @@
-import type { FileMetadata } from "@/hooks/use-conversation-manager";
+import type { FileMetadata } from "@/stores/conversation-store";
 import type { IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { useState } from "react";
 import { toast } from "sonner";

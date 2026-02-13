@@ -3,8 +3,10 @@ import {
     AudioLines,
     Camera,
     FileText,
+    Mic,
     Pause,
     Scan,
+    Square,
 } from "lucide-react";
 import {
     InputGroup,
@@ -40,6 +42,18 @@ export default function InputArea() {
 
     return (
         <div className="sticky bottom-4">
+            {/* WebSocket 连接状态指示器
+            {isRecording && (
+                <div className="mb-2 flex items-center gap-2 text-xs">
+                    <div
+                        className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+                    />
+                    <span className="text-muted-foreground">
+                        {isConnected ? `录音中 (${status})` : "连接中..."}
+                    </span>
+                </div>
+            )} */}
+
             {/* 展示文件小图标 */}
             {attachedFiles && (
                 <div className="mb-2">
@@ -117,7 +131,8 @@ export default function InputArea() {
                         </DialogContent>
                     </Dialog>
 
-                    <Separator orientation="vertical" className="!h-4" />
+                    <Separator orientation="vertical" className="h-4" />
+
                     {/* 发送按钮 */}
                     <InputGroupButton
                         variant="default"
@@ -128,6 +143,16 @@ export default function InputArea() {
                     >
                         {isLoading ? <Spinner /> : <ArrowUpIcon />}
                     </InputGroupButton>
+
+                    {/* 音频输入按钮 */}
+                    {/* <InputGroupButton
+                        variant="default"
+                        className="rounded-full"
+                        size="icon-sm"
+                        // onClick={toggleRecording}
+                    >
+                        {isRecording ? <Square className="w-4 h-4" /> : <Mic />}
+                    </InputGroupButton> */}
 
                     {/* 播放按钮 */}
                     <InputGroupButton

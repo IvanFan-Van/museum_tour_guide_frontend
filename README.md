@@ -1,69 +1,144 @@
-# React + TypeScript + Vite
+# 多模态 Agent WebSocket 通信协议规范
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 1. 协议概述
 
-Currently, two official plugins are available:
+* **通信模式**：全双工 WebSocket。
+* **帧类型**：
+* **Text Frame (JSON)**：用于传输控制指令、Agent 状态更新、文本流以及媒体元数据（如图片 URL）。
+* **Binary Frame (ArrayBuffer)**：**专用于** 音频流分片。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 2. 客户端 -> 后端 (Client-to-Server)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 2.1 发送消息 (`query`)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+用户发送文本、图片或两者结合的消息。
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+**JSON Schema:**
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```json
+{
+  "type": "query",
+  "message_id": "string", // 客户端生成的唯一 ID，用于追踪
+  "payload": {
+    "text": "string",     // 用户输入的文本
+    "images": [           // 可选，图片数组
+      {
+        "format": "string", // e.g., "jpg", "png"
+        "data": "string"    // Base64 编码的图片数据
+      }
+    ]
+  }
+}
+
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2.2 控制指令 (`control`)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+用于执行“停止生成”、“重置会话”等非业务数据的逻辑控制。
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**案例：停止生成 (Interrupt)**
+
+```json
+{
+  "type": "control",
+  "payload": {
+    "action": "stop",
+    "target_message_id": "msg_123456" // 指定要中断的消息 ID
+  }
+}
+
 ```
+
+---
+
+## 3. 后端 -> 客户端 (Server-to-Client)
+
+### 3.1 状态更新 (`status`)
+
+用于展示 Agent 的中间思考过程（Thinking, Searching 等）。
+
+**案例：Agent 正在搜索**
+
+```json
+{
+  "type": "status",
+  "payload": {
+    "state": "searching",        // 状态码：thinking | searching | analyzing | idle
+    "detail": "正在查询 2026 年天气预报...", // UI 显示的提示文字
+    "tool_calls": ["web_search"] // 当前调用的工具名
+  }
+}
+
+```
+
+### 3.2 文本流 (`text_chunk`)
+
+流式返回 Agent 生成的回复文字。
+
+**案例：流式文本推送**
+
+```json
+{
+  "type": "text_chunk",
+  "message_id": "msg_123456",
+  "payload": {
+    "content": "今天",
+    "is_final": false,
+  }
+}
+
+```
+
+### 3.3 媒体工件 (`artifact`)
+
+当 Agent 输出非文本结果（如生成的图片、图表、文件）时使用。
+
+**案例：返回图片**
+
+```json
+{
+  "type": "artifact",
+  "payload": {
+    "media_type": "image",
+    "url": "https://assets.ai.com/gen_001.png", // 优先使用 URL
+    "caption": "这是为您绘制的架构图"
+  }
+}
+
+```
+
+---
+
+## 4. 二进制音频帧 (Binary Frame)
+
+为了极致性能，音频不包装 JSON，直接发送二进制数据。
+
+* **数据内容**：原始音频切片（使用 Opus 或 MP3 编码）。
+* **前端识别**：在 `onmessage` 中，通过 `event.data instanceof ArrayBuffer` 来识别并直接送入播放队列。
+
+---
+
+## 5. 交互案例流程演示
+
+### 场景：用户发送图片并询问“这是什么”，Agent 搜索后回答并语音播报。
+
+1. **C -> S (Text Frame)**:
+`{"type": "query", "payload": {"text": "这是什么？", "images": [...]}}`
+2. **S -> C (Text Frame)**:
+`{"type": "status", "payload": {"state": "analyzing", "detail": "正在识别图片..."}}`
+3. **S -> C (Text Frame)**:
+`{"type": "status", "payload": {"state": "searching", "detail": "正在搜索相关信息..."}}`
+4. **S -> C (Text Frame)**:
+`{"type": "text_chunk", "payload": {"content": "这是一只", "is_final": false}}`
+5. **S -> C (Binary Frame)**:
+`[Binary Data: "这是一只" 的音频分片]`
+6. **S -> C (Text Frame)**:
+`{"type": "text_chunk", "payload": {"content": "罕见的雪豹。", "is_final": true}}`
+7. **S -> C (Binary Frame)**:
+`[Binary Data: "罕见的雪豹。" 的音频分片]`
+8. **S -> C (Text Frame)**:
+`{"type": "status", "payload": {"state": "idle"}}`
+
+
