@@ -3,10 +3,8 @@ import {
     AudioLines,
     Camera,
     FileText,
-    Mic,
     Pause,
     Scan,
-    Square,
 } from "lucide-react";
 import {
     InputGroup,

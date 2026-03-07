@@ -97,8 +97,8 @@ export const handlers = [
             // stream response text
             for (let i = 0; i < MOCK_CHUNKS.length; i++) {
                 await delay(100);
-                let text_chunk = MOCK_CHUNKS[i];
-                let audio_chunk = audioChunks[i % audioChunks.length];
+                const text_chunk = MOCK_CHUNKS[i];
+                const audio_chunk = audioChunks[i % audioChunks.length];
                 client.send(
                     JSON.stringify({
                         type: "text_chunk",
