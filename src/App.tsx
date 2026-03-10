@@ -7,7 +7,21 @@ import { Toaster } from "./components/ui/sonner";
 import { useState, useEffect } from "react";
 
 function App() {
-    const { currentConversation } = useConversation();
+    const { currentConversation, createConversation, processScannedFile } = useConversation();
+
+    // Handle URL deep-link: ?doc_id=xxx
+    // On first mount, auto-create a conversation and attach the exhibit
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const docId = params.get("doc_id");
+        if (!docId) return;
+
+        createConversation();
+        processScannedFile({ docId });
+
+        // Clean the URL so refreshing doesn't re-trigger
+        history.replaceState({}, "", window.location.pathname);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 跟随 <html> 上的 .dark class 同步 Toaster 主题
     // 使用 MutationObserver 监听 className 变化，避免独立的 useTheme 实例间不同步

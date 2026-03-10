@@ -4,6 +4,19 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 /**
+ * 从 QR code raw value 中解析 doc_id.
+ * 支持 URL 格式: https://example.com?doc_id=xxx
+ */
+function parseDocId(rawValue: string): string | null {
+    try {
+        const url = new URL(rawValue);
+        return url.searchParams.get("doc_id");
+    } catch {
+        return null;
+    }
+}
+
+/**
  * 使用 React-Scanner 获取 Scan 之后的信息
  */
 export default function useScan({
@@ -11,7 +24,6 @@ export default function useScan({
 }: {
     onSuccess: (data: FileMetadata) => void;
 }) {
-    // const result = useRef<IDetectedBarcode[]>(null);
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const open = () => setIsOpen(true);
     const close = () => setIsOpen(false);
@@ -23,15 +35,18 @@ export default function useScan({
     const handleScan = (results: IDetectedBarcode[]) => {
         if (results.length === 0) return;
 
-        try {
-            const data: FileMetadata = JSON.parse(results[0].rawValue);
-            onSuccess(data);
-            close();
-            toast.success(`Scanned: ${data.filename}`);
-        } catch (error) {
-            toast.error("Failed to parse data in QR Code");
-            console.error("Failed to parse data in QR Code", error);
+        const rawValue = results[0].rawValue;
+        const docId = parseDocId(rawValue);
+
+        if (!docId) {
+            toast.error("QR code does not contain a valid doc_id");
+            console.error("QR code missing doc_id:", rawValue);
+            return;
         }
+
+        onSuccess({ docId });
+        close();
+        toast.success("Document scanned successfully");
     };
 
     return {

@@ -53,24 +53,19 @@ export default function InputArea() {
             )} */}
 
             {/* 展示文件小图标 */}
-            {attachedFiles && (
-                <div className="mb-2">
-                    {attachedFiles.map((metadata) => {
-                        return (
-                            <Card
-                                className="inline-block py-2 px-2"
-                                key={metadata.docId}
-                            >
-                                <CardContent className="flex items-center text-xs gap-2 p-0 text-muted-foreground truncate">
-                                    <FileText className="w-4 h-4" />
-                                    <p>
-                                        {metadata.filename} (page:{" "}
-                                        {metadata.pageIndex})
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
+            {attachedFiles && attachedFiles.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                    {attachedFiles.map((metadata) => (
+                        <Card
+                            className="inline-block py-2 px-2"
+                            key={metadata.docId}
+                        >
+                            <CardContent className="flex items-center text-xs gap-2 p-0 text-muted-foreground">
+                                <FileText className="w-4 h-4 shrink-0" />
+                                <p className="truncate max-w-[160px]">{metadata.docId}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
             )}
             <InputGroup className="bg-background dark:bg-background">

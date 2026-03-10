@@ -15,8 +15,6 @@ export interface Message {
 
 export interface FileMetadata {
     docId: string;
-    filename: string;
-    pageIndex?: number;
 }
 
 export interface Conversation {
