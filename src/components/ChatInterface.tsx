@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { useEffect, useRef } from "react";
 import { useConversation } from "@/hooks/use-conversation";
+import useLanguage, { type Language } from "@/hooks/use-language";
 import { Spinner } from "./ui/spinner";
 
 const MarkdownImage: Components["img"] = ({
@@ -99,13 +100,19 @@ const AssistantMessage = ({
     images,
     references,
     usedWebSearch,
+    language,
 }: {
     content: string;
     images?: string[];
     references?: string[];
     usedWebSearch?: boolean;
+    language: Language;
 }) => {
     const { isLoading } = useConversation();
+    const webSearchDisclaimer =
+        language === "zh"
+            ? "以下信息来自互联网，正确性需自行判断"
+            : "The following information comes from the internet; please verify its accuracy";
 
     const handleClickCopy = async (content: string) => {
         try {
@@ -148,6 +155,12 @@ const AssistantMessage = ({
                     </div>
                 )}
 
+                {usedWebSearch && (
+                    <p className="mt-3 text-xs text-muted-foreground">
+                        {webSearchDisclaimer}
+                    </p>
+                )}
+
                 {usedWebSearch && references && references.length > 0 && (
                     <div className="mt-3 border-t pt-2">
                         <p className="text-xs text-muted-foreground font-semibold mb-1">References</p>
@@ -187,7 +200,12 @@ const AssistantMessage = ({
 
 export default function ChatInterface() {
     const { messages, currentStatus, isLoading, error, retryLastMessage } = useConversation();
+    const { language } = useLanguage();
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const aiDisclaimer =
+        language === "zh"
+            ? "AI 生成的回复请自行甄别对错"
+            : "Please verify AI-generated responses on your own";
 
     // 每当消息列表或 loading 状态变化时，自动滚动到底部
     useEffect(() => {
@@ -210,6 +228,7 @@ export default function ChatInterface() {
                             images={message.images}
                             references={message.references}
                             usedWebSearch={message.usedWebSearch}
+                            language={language}
                         />
                     ),
                 )}
@@ -221,6 +240,9 @@ export default function ChatInterface() {
                 )}
                 <div ref={messagesEndRef} />
             </div>
+            <p className="mb-2 px-1 text-xs text-muted-foreground">
+                {aiDisclaimer}
+            </p>
             <InputArea />
         </main>
     );
